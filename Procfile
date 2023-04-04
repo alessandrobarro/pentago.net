@@ -1,1 +1,1 @@
-worker: node --experimental-modules pentago-server.js
+web: node --experimental-modules pentago-server.js
