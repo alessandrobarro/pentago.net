@@ -31,7 +31,7 @@ http.listen(PORT, function(){
 const WebSocket = require('ws');
 
 // Creates a socket
-const server = new WebSocket.Server({ app });
+const server = new WebSocket.Server({ server: app });
 
 console.log('[START] Waiting for a connection');
 
