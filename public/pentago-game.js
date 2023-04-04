@@ -7,8 +7,7 @@ All rights reserved.
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-var PORT = ':8080'
-var ADDR = HOST + PORT;
+console.log('[DATA] Host: ', HOST);
 var el;
 
 const playername = localStorage.getItem("nickname");
