@@ -1,1 +1,1 @@
-web: node --experimental-modules pentago-server.js
+web: npm start
