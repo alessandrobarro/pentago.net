@@ -32,6 +32,7 @@ const WebSocket = require('ws');
 
 // Creates a socket
 const server = new WebSocket.Server({ port: 8080 });
+console.log('[DATA] Server: ', server);
 
 console.log('[START] Waiting for a connection');
 
