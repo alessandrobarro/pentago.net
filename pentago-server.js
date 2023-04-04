@@ -28,8 +28,7 @@ const WebSocket = require('ws');
 const server = new WebSocket.Server({ server: http_server });
 
 app.use(express.static('public'))
-app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'))
-
+app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 app.listen(PORT, () => console.log(`[DATA] Listening on port: ${PORT}`));
 
 console.log('[START] Waiting for a connection');
