@@ -27,7 +27,7 @@ const app = express()
 const WebSocket = require('ws');
 
 // Creates a socket
-const server = new WebSocket.Server({ port: 443 });
+const server = new WebSocket.Server({ port: 8080 });
 
 console.log('[START] Waiting for a connection');
 
