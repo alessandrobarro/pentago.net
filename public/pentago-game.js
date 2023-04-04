@@ -179,7 +179,7 @@ class GameScene extends Phaser.Scene {
   // Implements client-side connection and data handling
   connect() {
     let flag = 0;
-    this.socket = new WebSocket('wss://pentago.herokuapp.com:443'); //web-socket server socket
+    this.socket = new WebSocket('wss://pentago.herokuapp.com:5500'); //web-socket server socket
 
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify({ type: 'name', name: playername}));
