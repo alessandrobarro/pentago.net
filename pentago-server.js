@@ -18,7 +18,7 @@ const __dirname = dirname(__filename);
 const express = require('express');
 const app = express();
 
-const PORT = process.env.PORT || 5500;
+const PORT = 443; //process.env.PORT ||
 app.use(express.static('public'));
 const http = require('http').Server(app)
 
@@ -31,7 +31,7 @@ http.listen(PORT, function(){
 const WebSocket = require('ws');
 
 // Creates a socket
-const server = new WebSocket.Server({ port: 8080 });
+const server = new WebSocket.Server({ port: 443 });
 
 console.log('[START] Waiting for a connection');
 
