@@ -15,6 +15,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 5500;
+const IP = 'pentago.herokuapp.com/';
+const URL = 'wss://' + IP + ':' + '443';
 
 const express = require('express');
 const app = express()
@@ -25,7 +27,7 @@ const app = express()
 const WebSocket = require('ws');
 
 // Creates a socket
-const server = new WebSocket.Server({ port: 8080 });
+const server = new WebSocket.Server({ server: URL });
 
 console.log('[START] Waiting for a connection');
 
