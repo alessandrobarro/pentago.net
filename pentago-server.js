@@ -29,7 +29,8 @@ const server = new WebSocket.Server({ server: http_server });
 
 app.use(express.static('public'))
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
-app.listen(PORT, () => console.log(`[DATA] Listening on port: ${PORT}`));
+
+http_server.listen(PORT, () => console.log('[DATA] Listening on port: 3000'));
 
 console.log('[START] Waiting for a connection');
 
