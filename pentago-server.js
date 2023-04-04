@@ -25,14 +25,13 @@ const http = require('http').Server(app)
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 http.listen(PORT, function(){
-  console.log('listening in port', PORT);
+  console.log('[DATA] Http is listening on port ', PORT);
 });
 
 const WebSocket = require('ws');
 
 // Creates a socket
-const server = new WebSocket.Server({ port: 8080 });
-console.log('[DATA] Server: ', server.address());
+const server = new WebSocket.Server({ app });
 
 console.log('[START] Waiting for a connection');
 
