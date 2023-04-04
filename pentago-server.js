@@ -14,19 +14,13 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const PORT = process.env.PORT || 5500;
 
 const express = require('express');
-const app = express();
-
-const PORT = process.env.PORT || 5500;
-app.use(express.static('public'));
-const http = require('http').Server(app)
-
-app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
-
-http.listen(PORT, function(){
-  console.log('[DATA] Http is listening on port ', PORT);
-});
+const app = express()
+.use(express.static('public'))
+.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
+.listen(PORT, () => console.log(`[DATA] Listening on port: ${PORT}`));
 
 const WebSocket = require('ws');
 
