@@ -18,9 +18,9 @@ const PORT = process.env.PORT || 5500;
 
 const express = require('express');
 const app = express()
-.use(express.static('public'))
-.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
-.listen(PORT, () => console.log(`[DATA] Listening on port: ${PORT}`));
+  .use(express.static('public'))
+  .get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
+  .listen(PORT, () => console.log(`[DATA] Listening on port: ${PORT}`));
 
 const WebSocket = require('ws');
 
