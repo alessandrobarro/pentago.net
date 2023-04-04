@@ -14,7 +14,7 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 5000;
 const IP = 'pentago.herokuapp.com/';
 const URL = 'wss://' + IP + ':' + '443';
 
@@ -30,7 +30,7 @@ const server = new WebSocket.Server({ server: http_server });
 app.use(express.static('public'))
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 
-http_server.listen(PORT, () => console.log('[DATA] Listening on port: 3000'));
+http_server.listen(PORT, () => console.log('[DATA] Listening...'));
 
 console.log('[START] Waiting for a connection');
 
