@@ -1,0 +1,35 @@
+<!-- 
+Pentago.net
+All rights reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/x-icon" href="/data/assets/img/favicon.png">
+        <title>Pentago.net</title>
+        <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+        <script src="/node_modules/html2canvas/dist/html2canvas.min.js"></script>
+        <script data-main="pentago-game.js" src="pentago-game.js" type="module"></script>
+        <style>
+            body {
+                background-color: #232323;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            #gameContainer {
+                margin-top: 0px;
+                margin-left: 0px
+            }
+        </style>
+    </head>
+    <body>
+        <div id="gameContainer"></div>
+    </body>
+</html>
