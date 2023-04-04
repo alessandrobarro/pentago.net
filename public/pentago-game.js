@@ -7,8 +7,7 @@ All rights reserved.
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-var PORT = ':8080'
-var ADDR = HOST + PORT;
+console.log('[DATA] Host: ', HOST);
 var el;
 
 const playername = localStorage.getItem("nickname");
@@ -179,7 +178,7 @@ class GameScene extends Phaser.Scene {
   // Implements client-side connection and data handling
   connect() {
     let flag = 0;
-    this.socket = new WebSocket('wss://pentago.herokuapp.com:5500'); //web-socket server socket
+    this.socket = new WebSocket('wss://pentago.herokuapp.com:80'); //web-socket server socket
 
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify({ type: 'name', name: playername}));
