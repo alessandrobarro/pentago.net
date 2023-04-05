@@ -1,6 +1,5 @@
 /*
 Pentago.net
-All rights reserved.
 */
 
 // Board module contains game rules and methods
