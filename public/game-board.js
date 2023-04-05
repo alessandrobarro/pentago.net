@@ -1,6 +1,5 @@
 /*
 Pentago.net
-All rights reserved.
 */
 
 class Box {
