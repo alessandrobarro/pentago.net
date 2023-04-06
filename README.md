@@ -20,5 +20,5 @@ and WebSockets to handle connections both client and server side.
 - Full credits to Mindtwister, the company responsible for the publishment of the board-game, and the invention of it itself
 - Project manager and developer: Alessandro Barro, Computer Science and Engineering student at Politecnico di Milano
   (contacts: barroalessandro2003@gmail.com)
-- Special thanks to Matteo Colussi, Aerospacial Engineering student at Politecnico di Milano (and a dear friend), for making game-arts and design
+- Special thanks to Matteo Colussi, Aerospace Engineering student at Politecnico di Milano (and a dear friend), for making game-arts and design
   (contacts: matteo.colussi03@gmail.com)
