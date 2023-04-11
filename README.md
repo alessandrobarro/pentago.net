@@ -1,6 +1,6 @@
 # pentago.net
 
-#Play and test it right now
+# Play and test it right now
 Click on the following link http://www.pentago.net/ and start a game right the way!
 You are welcome to report any bugs or issues by clicking on the "mail" icon at the top-left corner.
 NOTE: only devices such as Desktop, Mac, most of the tablets are supported. Mobile phones are NOT supported.
