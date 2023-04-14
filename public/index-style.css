@@ -2,378 +2,394 @@
 
 /*ANIMATIONS*/
 @-webkit-keyframes slide-bottom {
-    0% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
+        0% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+        }
+        100% {
+          -webkit-transform: translateY(15px);
+                  transform: translateY(15px);
+        }
+      }
+      @keyframes slide-bottom {
+        0% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+        }
+        100% {
+          -webkit-transform: translateY(15px);
+                  transform: translateY(15px);
+        }
+      }
+    
+    
+    @-webkit-keyframes bounce-in-top {
+        0% {
+          -webkit-transform: translateY(-500px);
+                  transform: translateY(-500px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+          opacity: 0;
+        }
+        38% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+          opacity: 1;
+        }
+        55% {
+          -webkit-transform: translateY(-65px);
+                  transform: translateY(-65px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        72% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
+        81% {
+          -webkit-transform: translateY(-28px);
+                  transform: translateY(-28px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        90% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
+        95% {
+          -webkit-transform: translateY(-8px);
+                  transform: translateY(-8px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        100% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
+      }
+    
+    @keyframes bounce-in-top {
+        0% {
+          -webkit-transform: translateY(-500px);
+                  transform: translateY(-500px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+          opacity: 0;
+        }
+        38% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+          opacity: 1;
+        }
+        55% {
+          -webkit-transform: translateY(-65px);
+                  transform: translateY(-65px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        72% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
+        81% {
+          -webkit-transform: translateY(-28px);
+                  transform: translateY(-28px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        90% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
+        95% {
+          -webkit-transform: translateY(-8px);
+                  transform: translateY(-8px);
+          -webkit-animation-timing-function: ease-in;
+                  animation-timing-function: ease-in;
+        }
+        100% {
+          -webkit-transform: translateY(0);
+                  transform: translateY(0);
+          -webkit-animation-timing-function: ease-out;
+                  animation-timing-function: ease-out;
+        }
     }
-    100% {
-      -webkit-transform: translateY(15px);
-              transform: translateY(15px);
+    
+    @-webkit-keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}@keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}
+    
+    @-webkit-keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}@keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}
+    
+    @-webkit-keyframes fade-in {0%{opacity: 0;}100% {opacity: 1;}}@keyframes fade-in{0%{opacity: 0;}100%{opacity: 1;}}
+    
+    /*
+      -----------------------------------------------
+     * Animations generated by Animista
+     * Licensed under FreeBSD License.
+     * See http://animista.net/license for more info. 
+     * w: http://animista.net, t: @cssanimista
+     * ---------------------------------------------- 
+    */
+    
+    /* GENERAL STYLING*/
+    html {
+        scroll-behavior: smooth;
+        height: 100%;
     }
-  }
-  @keyframes slide-bottom {
-    0% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
+    
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        background-color: #232323;
+        margin-top: 0px;
+        margin-right: 0px;
+        margin-bottom: 0px;
+        margin-left: 0px;
+        font-style: normal;
+        font-weight: 200;
+        height: 100%;
+        overflow-x: hidden;
     }
-    100% {
-      -webkit-transform: translateY(15px);
-              transform: translateY(15px);
+    
+    /* MENU & TOOLBAR */
+    @media screen and (max-width: 600px) {
+            .menu {
+              display: none;
+            }
     }
-  }
-
-
-@-webkit-keyframes bounce-in-top {
-    0% {
-      -webkit-transform: translateY(-500px);
-              transform: translateY(-500px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-      opacity: 0;
+    
+    @media screen and (min-width: 601px) {
+            .menu {
+              margin-right: 2%;
+              font-size: 24px;
+              text-align: right;
+              align-items: right;
+              justify-content: right;
+            }
     }
-    38% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-      opacity: 1;
+    
+    .tutorial {
+            text-align: right;
+            margin-top: 1.5%;
+            margin-left: 1.5%;
+            display: inline-block;
+            -webkit-animation:slide-in-blurred-top 1.8s;animation:slide-in-blurred-top 1.8s;
     }
-    55% {
-      -webkit-transform: translateY(-65px);
-              transform: translateY(-65px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    72% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-    81% {
-      -webkit-transform: translateY(-28px);
-              transform: translateY(-28px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    90% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-    95% {
-      -webkit-transform: translateY(-8px);
-              transform: translateY(-8px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    100% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-  }
-
-@keyframes bounce-in-top {
-    0% {
-      -webkit-transform: translateY(-500px);
-              transform: translateY(-500px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-      opacity: 0;
-    }
-    38% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-      opacity: 1;
-    }
-    55% {
-      -webkit-transform: translateY(-65px);
-              transform: translateY(-65px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    72% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-    81% {
-      -webkit-transform: translateY(-28px);
-              transform: translateY(-28px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    90% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-    95% {
-      -webkit-transform: translateY(-8px);
-              transform: translateY(-8px);
-      -webkit-animation-timing-function: ease-in;
-              animation-timing-function: ease-in;
-    }
-    100% {
-      -webkit-transform: translateY(0);
-              transform: translateY(0);
-      -webkit-animation-timing-function: ease-out;
-              animation-timing-function: ease-out;
-    }
-}
-
-@-webkit-keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}@keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}
-
-@-webkit-keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}@keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}
-
-@-webkit-keyframes fade-in {0%{opacity: 0;}100% {opacity: 1;}}@keyframes fade-in{0%{opacity: 0;}100%{opacity: 1;}}
-
-/*
-  -----------------------------------------------
- * Animations generated by Animista
- * Licensed under FreeBSD License.
- * See http://animista.net/license for more info. 
- * w: http://animista.net, t: @cssanimista
- * ---------------------------------------------- 
-*/
-
-/* GENERAL STYLING*/
-html {
-    scroll-behavior: smooth;
-    height: 100%;
-}
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    display: flex;
-    flex-direction: column;
-    background-color: #232323;
-    margin-top: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-    margin-left: 0px;
-    font-style: normal;
-    font-weight: 200;
-    height: 100%;
-	overflow-x: hidden;
-}
-
-/* MENU & TOOLBAR */
-@media screen and (max-width: 600px) {
-	.menu {
-	  display: none;
-	}
-}
-
-@media screen and (min-width: 601px) {
-	.menu {
-	  margin-right: 2%;
-	  font-size: 24px;
-	  text-align: right;
-	  align-items: right;
-	  justify-content: right;
-	}
-}
-
-.tutorial {
+    .user {
         text-align: right;
         margin-top: 1.5%;
         margin-left: 1.5%;
         display: inline-block;
-        -webkit-animation:slide-in-blurred-top 1.8s;animation:slide-in-blurred-top 1.8s;
-}
-.user {
-    text-align: right;
-    margin-top: 1.5%;
-    margin-left: 1.5%;
-    display: inline-block;
-    -webkit-animation:slide-in-blurred-top 1.4s;animation:slide-in-blurred-top 1.4s;
-}
-.mail {
-    text-align: left;
-    margin-top: 1.5%;
-    margin-left: 1.5%;
-    display: inline-block;
-    -webkit-animation:slide-in-blurred-top 1s;animation:slide-in-blurred-top 1s;
-}
-.settings {
-    text-align: left;
-    margin-top: 1.5%;
-    margin-left: 1.5%;
-    display: inline-block;
-    -webkit-animation:slide-in-blurred-top .6s;animation:slide-in-blurred-top .6s;
-}
-
-/* POPUP */
-.tu-popup {
-        position: relative;
+        -webkit-animation:slide-in-blurred-top 1.4s;animation:slide-in-blurred-top 1.4s;
+    }
+    .mail {
+        text-align: left;
+        margin-top: 1.5%;
+        margin-left: 1.5%;
         display: inline-block;
-        cursor: pointer;
-}
-
-.tu-popup .tu-popuptext{
-        visibility: hidden;
-        width: 160px;
-        background-color: #434141;
-        color: #fff;
+        -webkit-animation:slide-in-blurred-top 1s;animation:slide-in-blurred-top 1s;
+    }
+    .settings {
+        text-align: left;
+        margin-top: 1.5%;
+        margin-left: 1.5%;
+        display: inline-block;
+        -webkit-animation:slide-in-blurred-top .6s;animation:slide-in-blurred-top .6s;
+    }
+    
+    /* POPUP */
+    .tu-popup {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+    }
+    
+    .tu-popup .tu-popuptext{
+            visibility: hidden;
+            width: 160px;
+            background-color: #434141;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 0;
+            position: absolute;
+            z-index: 1;
+            top: 120%;
+            left: 50%;
+            margin-left: -80px;
+    }
+    
+    .tu-popup .show {
+            visibility: visible;
+            -webkit-animation: fadeIn 1s;
+            animation: fadeIn 1s
+    }
+    
+    @-webkit-keyframes fadeIn{from{opacity: 0;}to{opacity: 1;}}@keyframes fadeIn {from {opacity: 0;}to{opacity:1 ;}}
+    
+    /* MAIN SECTION */
+        @media screen and (max-width: 600px) {
+                .main {
+                        margin-top: 30%;
+                        align-items: center;
+                        height: 100%;
+                }
+        }
+        @media screen and (min-width: 601px) {
+                .main {
+                        align-items: center;
+                        height: 100%;
+                }
+        }
+    .main {
+        align-items: center;
+        height: 100%;
+    }
+    .container {
+        margin-top: 13%;
+        font-size: 24px;
         text-align: center;
-        border-radius: 6px;
-        padding: 8px 0;
-        position: absolute;
-        z-index: 1;
-        top: 120%;
-        left: 50%;
-        margin-left: -80px;
-}
-
-.tu-popup .show {
-        visibility: visible;
-        -webkit-animation: fadeIn 1s;
-        animation: fadeIn 1s
-}
-
-@-webkit-keyframes fadeIn{from{opacity: 0;}to{opacity: 1;}}@keyframes fadeIn {from {opacity: 0;}to{opacity:1 ;}}
-
-/* MAIN SECTION */
-.main {
-    align-items: center;
-}
-.container {
-    margin-top: 13%;
-    font-size: 24px;
-    text-align: center;
-    align-items: center;
-    justify-content: center;
-}
-.title {
-    width: 30%;
-    height: 12%;
-    -webkit-animation: bounce-in-top 1.1s;
-    animation: bounce-in-top 1.1s;
-}
-.playername {
-    width: 250px;
-    height: 30px;
-    background-color: #535252;
-    border-color: #595656;
-    color: #FFFFFF;
-}
-.playbtn {
-    margin-top: 2%;
-    -webkit-animation: slide-in-bottom 1.5s;
-	animation: slide-in-bottom 1.5s;
-}
-
-@media screen and (max-width: 600px) {
-	img.scrollbtn {
-	    display: none;
-	}
-}
-
-@media screen and (min-width: 601px) {
-	img.scrollbtn {
-	    height: 40px;
-	    width: 44px;
-	    margin-top: 7%;
-	    -webkit-animation: slide-bottom 1s;
-	    animation: slide-bottom 1s;
-	    animation-iteration-count: infinite;
-	}
-}
-
-/* DEMO */
-
-.place-m {
-  justify-content: center;
-  align-items: center;
-  margin-right: 100px;
-  color: #ffffff;
-  text-align: left;
-  font-weight: bold;
-  display: inline-block;
-  margin-top: 50px;
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-}
-
-.select-q {
-  justify-content: center;
-  align-items: center;
-  margin-right: 100px;
-  color: #ffffff;
-  text-align: center;
-  font-weight: bold;
-  display: inline-block;
-  margin-top: 50px;
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation-delay: 1s;
-}
-
-.rotate-q {
-  justify-content: center;
-  align-items: center;
-  color: #ffffff;
-  text-align: center;
-  font-weight: bold;
-  display: inline-block;
-  margin-top: 50px;
-  -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
-  animation-delay: 2s;	
-}
-
-
-/* SUBSCRIBE */
-
-@media screen and (max-width: 600px) {
-	.footer-sub {
-	    display: none;
-	}
-}
-
-@media screen and (min-width: 601px) {
-	.footer-sub {
-	    width: 100%;
-	    height: 100%;
-	    background-color: #787777;
-	    color: #FFFFFF;
-	    margin-top: 40%;
-	}
-}
-
-.subscribe {
-    color: #FFFFFF;
-    text-align: left;
-    justify-content: left;
-    align-items: left;
-    font-size: 20px;
-    font-weight: bold;
-    margin-left: 2%;
-    padding-top: 30px;
-}
-input[type=text].form, input[type=submit].form {
-        width: 20%;
-        padding: 12px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-}
-input[type=submit] {
-        background-color: #232323;
-        color: #ffffff;
-        border: none;
-        width: 120px;
-        height: 40px;
-}
-input[type=submit]:hover {
-        opacity: 0.8;
-}
+        align-items: center;
+        justify-content: center;
+    }
+    .title {
+        width: 30%;
+        height: 12%;
+        -webkit-animation: bounce-in-top 1.1s;
+        animation: bounce-in-top 1.1s;
+    }
+    .playername {
+        width: 18%;
+        height: 10%;
+        background-color: #535252;
+        border-color: #595656;
+        color: #FFFFFF;
+    }
+    .playbtn {
+        margin-top: 2%;
+        -webkit-animation: slide-in-bottom 1.5s;
+        animation: slide-in-bottom 1.5s;
+        width: 10%;
+        height: 3.5%;
+    }
+    
+    @media screen and (max-width: 600px) {
+            img.scrollbtn {
+                display: none;
+            }
+    }
+    
+    @media screen and (min-width: 601px) {
+            img.scrollbtn {
+                height: 40px;
+                width: 44px;
+                margin-top: 7%;
+                -webkit-animation: slide-bottom 1s;
+                animation: slide-bottom 1s;
+                animation-iteration-count: infinite;
+            }
+    }
+    
+    /* DEMO */
+    
+    .place-m {
+      justify-content: center;
+      align-items: center;
+      margin-right: 100px;
+      color: #ffffff;
+      text-align: left;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 50px;
+      -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+      animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    }
+    
+    .select-q {
+      justify-content: center;
+      align-items: center;
+      margin-right: 100px;
+      color: #ffffff;
+      text-align: center;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 50px;
+      -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+      animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+      animation-delay: 1s;
+    }
+    
+    .rotate-q {
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      text-align: center;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 50px;
+      -webkit-animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+      animation: fade-in 1.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+      animation-delay: 2s;	
+    }
+    
+    
+    /* SUBSCRIBE */
+    
+    @media screen and (max-width: 600px) {
+            .footer-sub {
+                display: none;
+            }
+    }
+    
+    @media screen and (min-width: 601px) {
+            .footer-sub {
+                width: 100%;
+                height: 100%;
+                background-color: #787777;
+                color: #FFFFFF;
+                margin-top: 40%;
+            }
+    }
+    
+    .subscribe {
+        color: #FFFFFF;
+        text-align: left;
+        justify-content: left;
+        align-items: left;
+        font-size: 20px;
+        font-weight: bold;
+        margin-left: 2%;
+        padding-top: 30px;
+    }
+    input[type=text].form, input[type=submit].form {
+            width: 20%;
+            padding: 12px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+    }
+    input[type=submit] {
+            background-color: #232323;
+            color: #ffffff;
+            border: none;
+            width: 120px;
+            height: 40px;
+    }
+    input[type=submit]:hover {
+            opacity: 0.8;
+    }
