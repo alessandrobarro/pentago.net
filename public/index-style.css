@@ -145,6 +145,24 @@
     */
     
     /* GENERAL STYLING*/
+    @media screen and (max-width: 600px) {
+        .rotate-device {
+                height: 300px;
+                width: 300px;
+                top: 50%;
+                left: 50%;
+                width: 30em;
+                height: 18em;
+                transform: translate(-50%, -50%);
+                position: fixed;
+        }
+}
+
+@media screen and (min-width: 601px) {
+        .rotate-device {
+          display: none;
+        }
+}
     html {
         scroll-behavior: smooth;
         height: 100%;
@@ -248,17 +266,27 @@
                         align-items: center;
                         height: 100%;
                 }
+                .playername {
+                        width: 18%;
+                        height: 10%;
+                        background-color: #535252;
+                        border-color: #595656;
+                        color: #FFFFFF;
+                }
         }
         @media screen and (min-width: 601px) {
                 .main {
                         align-items: center;
                         height: 100%;
                 }
+                .playername {
+                        width: 18%;
+                        height: 25px;
+                        background-color: #535252;
+                        border-color: #595656;
+                        color: #FFFFFF;
+                    }
         }
-    .main {
-        align-items: center;
-        height: 100%;
-    }
     .container {
         margin-top: 13%;
         font-size: 24px;
@@ -271,13 +299,6 @@
         height: 12%;
         -webkit-animation: bounce-in-top 1.1s;
         animation: bounce-in-top 1.1s;
-    }
-    .playername {
-        width: 18%;
-        height: 10%;
-        background-color: #535252;
-        border-color: #595656;
-        color: #FFFFFF;
     }
     .playbtn {
         margin-top: 2%;
