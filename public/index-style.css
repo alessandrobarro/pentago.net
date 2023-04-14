@@ -168,28 +168,20 @@ body {
 /* MENU & TOOLBAR */
 @media screen and (max-width: 600px) {
 	.menu {
+	  display: none;
+	}
+}
+
+@media screen and (min-width: 601px) {
+	.menu {
 	  margin-right: 2%;
 	  font-size: 24px;
 	  text-align: right;
 	  align-items: right;
 	  justify-content: right;
 	}
-	img.scrollbtn {
-	    height: 40px;
-	    width: 44px;
-	    margin-top: 7%;
-	    -webkit-animation: slide-bottom 1s;
-	    animation: slide-bottom 1s;
-	    animation-iteration-count: infinite;
-	}
-	.footer-sub {
-	    width: 100%;
-	    height: 100%;
-	    background-color: #787777;
-	    color: #FFFFFF;
-	    margin-top: 40%;
-	}
 }
+
 .tutorial {
         text-align: right;
         margin-top: 1.5%;
@@ -279,6 +271,23 @@ body {
 	animation: slide-in-bottom 1.5s;
 }
 
+@media screen and (max-width: 600px) {
+	img.scrollbtn {
+	    display: none;
+	}
+}
+
+@media screen and (min-width: 601px) {
+	img.scrollbtn {
+	    height: 40px;
+	    width: 44px;
+	    margin-top: 7%;
+	    -webkit-animation: slide-bottom 1s;
+	    animation: slide-bottom 1s;
+	    animation-iteration-count: infinite;
+	}
+}
+
 /* DEMO */
 
 .place-m {
@@ -321,14 +330,25 @@ body {
   animation-delay: 2s;	
 }
 
-@media (max-width: 767px) {
-        .hidden-mobile {
-          display: none;
-        }
-}
-
 
 /* SUBSCRIBE */
+
+@media screen and (max-width: 600px) {
+	.footer-sub {
+	    display: none;
+	}
+}
+
+@media screen and (min-width: 601px) {
+	.footer-sub {
+	    width: 100%;
+	    height: 100%;
+	    background-color: #787777;
+	    color: #FFFFFF;
+	    margin-top: 40%;
+	}
+}
+
 .subscribe {
     color: #FFFFFF;
     text-align: left;
