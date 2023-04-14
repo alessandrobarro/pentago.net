@@ -244,6 +244,8 @@ body {
     justify-content: center;
 }
 .title {
+    width: 30%;
+    height: 12%;
     -webkit-animation: bounce-in-top 1.1s;
     animation: bounce-in-top 1.1s;
 }
@@ -310,7 +312,11 @@ img.scrollbtn {
   animation-delay: 2s;	
 }
 
-
+@media (max-width: 767px) {
+        .hidden-mobile {
+          display: none;
+        }
+}
 
 
 /* SUBSCRIBE */
@@ -319,7 +325,7 @@ img.scrollbtn {
     height: 100%;
     background-color: #787777;
     color: #FFFFFF;
-    margin-top: 30%;
+    margin-top: 40%;
 }
 .subscribe {
     color: #FFFFFF;
