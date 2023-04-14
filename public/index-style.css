@@ -166,12 +166,29 @@ body {
 }
 
 /* MENU & TOOLBAR */
-.menu {
-  margin-right: 2%;
-  font-size: 24px;
-  text-align: right;
-  align-items: right;
-  justify-content: right;
+@media screen and (max-width: 600px) {
+	.menu {
+	  margin-right: 2%;
+	  font-size: 24px;
+	  text-align: right;
+	  align-items: right;
+	  justify-content: right;
+	}
+	img.scrollbtn {
+	    height: 40px;
+	    width: 44px;
+	    margin-top: 7%;
+	    -webkit-animation: slide-bottom 1s;
+	    animation: slide-bottom 1s;
+	    animation-iteration-count: infinite;
+	}
+	.footer-sub {
+	    width: 100%;
+	    height: 100%;
+	    background-color: #787777;
+	    color: #FFFFFF;
+	    margin-top: 40%;
+	}
 }
 .tutorial {
         text-align: right;
@@ -261,14 +278,6 @@ body {
     -webkit-animation: slide-in-bottom 1.5s;
 	animation: slide-in-bottom 1.5s;
 }
-img.scrollbtn {
-    height: 40px;
-    width: 44px;
-    margin-top: 7%;
-    -webkit-animation: slide-bottom 1s;
-    animation: slide-bottom 1s;
-    animation-iteration-count: infinite;
-}
 
 /* DEMO */
 
@@ -320,13 +329,6 @@ img.scrollbtn {
 
 
 /* SUBSCRIBE */
-.footer-sub {
-    width: 100%;
-    height: 100%;
-    background-color: #787777;
-    color: #FFFFFF;
-    margin-top: 40%;
-}
 .subscribe {
     color: #FFFFFF;
     text-align: left;
