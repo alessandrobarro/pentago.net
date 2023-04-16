@@ -20,25 +20,70 @@ Pentago.net
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 100vh;
+                height: 100%;
             }
-            @media screen and (max-width: 600px) {
-                #gameContainer {
-                    width: 1058px;
-                    height: 595px;
-                    margin-top: 0px;
-                    margin-left: 0px;
-                }
-            }           
-            @media screen and (min-width: 601px) {
-                #gameContainer {
-                    margin-top: 0px;
-                    margin-left: 0px;
-                } 
+
+            #gameContainer {
+                margin-top: 0%;
+                margin-right: 0%;
+                display: inline-block;
             }
+
+            #side {
+                background-color: #151515;
+                text-align: right;
+                align-items: right;
+                justify-content: right;
+                height: 100%;
+                width: 20%;
+            }
+
+            .title {
+                width: 50%;
+                height:5%;
+                margin-top: 5%;
+                margin-right: 22%;
+                margin-bottom: 20%
+            }
+
+            .menu {
+                color: #ffffff;
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: center;
+                font-size: 80%;
+                margin-bottom: 10%;
+            }
+
+            .reg {
+                color: #ffffff;
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: center;
+                font-size: 60%;
+                margin-top: 98%;
+            }
+
         </style>
     </head>
     <body>
         <div id="gameContainer"></div>
+        <div id="side">
+            <img src="data/assets/img/title.PNG" class="title">
+            <br>
+            <a href="index.html" style="text-decoration:none"><p class="menu">Home</p></a>
+            <br>
+            <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support" style="text-decoration:none"><p class="menu">Contact</p></a>
+            <br>
+            <p class="menu">Settings</p>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <p class="reg"> © Pentago.net</p>
+        </div>
     </body>
 </html>

@@ -14,8 +14,8 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = process.env.PORT || 5000;
-const IP = 'pentago.herokuapp.com/';
+const PORT = 5000; //process.env.PORT || 5000
+const IP = '192.168.0.160'; //pentago.herokuapp.com/
 const URL = 'wss://' + IP + ':' + '443';
 
 const express = require('express');
@@ -55,7 +55,7 @@ async function handleClientMessage(socket) {
   
   if (gameId === -1) {
     gameId = Object.keys(games).length;
-    games[gameId] = new Board(566, 566);
+    games[gameId] = new Board(); //566, 566
     games[gameId].sockets = {}; // Initializes sockets property
     games[gameId].clients = []; // Initializes clients property
     games[gameId].colors = {}; // Initializes colors property
@@ -400,14 +400,24 @@ async function handleClientMessage(socket) {
   });
 
   socket.on('close', () => {
+    if (gameId === '0') {
+      bo.winner = '0';
+    }
+    else if (gameId === '1') {
+      bo.winner = '1';
+    }
+    sendGameState(0, true);
+    sendGameState(1, true); //works only if the not playing player disconnects
+
     connections--;
+
     bo.clients = bo.clients.filter(client => client !== currentId);
     if (bo.clients.length === 0) {
       delete games[gameId];
     }
     console.log(`[GAME] Game ${gameId} ended`);
     console.log(`[DISCONNECT] Player ${name} left game ${gameId}`);
-
+    
     clearInterval(bo.updateTimersInterval);
   });
 }

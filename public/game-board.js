@@ -132,9 +132,9 @@ class Board {
       }
     }     
   
-    get_quarter_from_pos(pos) {
-      const x = Math.floor((pos.x - 400));
-      const y = Math.floor((pos.y - 100));
+    get_quarter_from_pos(pos, dx, dy) {
+      const x = Math.floor((pos.x - dx));
+      const y = Math.floor((pos.y - dy));
       let quarter;
       if (x >= 0 && x <= 284 && y >= 0 && y <= 284) {
           quarter = 1;
@@ -148,9 +148,9 @@ class Board {
       return quarter;
     }
   
-    handle_click(pos, player) {
-      const x = Math.floor((pos.x - 400) / this.tile_width);
-      const y = Math.floor((pos.y - 100) / this.tile_height);
+    handle_click(pos, player, dx, dy) {
+      const x = Math.floor((pos.x - dx) / this.tile_width);
+      const y = Math.floor((pos.y - dy) / this.tile_height);
       
       const clicked_box = this.get_box_from_pos(player, { x, y });
     

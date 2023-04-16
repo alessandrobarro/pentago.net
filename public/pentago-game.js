@@ -7,7 +7,7 @@ All rights reserved.
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago.herokuapp.com/';
+const IP = '192.168.0.160'; //pentago.herokuapp.com/
 console.log('[DATA] Host: ', HOST);
 var el;
 
@@ -66,10 +66,10 @@ class GameScene extends Phaser.Scene {
   // Refreshes the game-window with the necessary parameters
   redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
     scene.cameras.main.setBackgroundColor('#232323');
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
 
-    const offset_x = this.cameras.main.width / 2;
-    const offset_y = this.cameras.main.height / 2;
-
+    /* GUI */
     scene.add.image(offset_x, offset_y, 'white_square');
     scene.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
     scene.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
@@ -107,10 +107,10 @@ class GameScene extends Phaser.Scene {
     };
 
     if (bo.turn === '0') {
-      scene.time_label = this.add.image(1108, 160, 'white_label')
+      scene.time_label = this.add.image(308, 130, 'white_label')
     }
     else if (bo.turn === '1') {
-      scene.time_label = this.add.image(1108, 160, 'black_label')
+      scene.time_label = this.add.image(308, 130, 'black_label')
     }
 
     /*
@@ -122,16 +122,16 @@ class GameScene extends Phaser.Scene {
     */
 
     if (!has_placed && bo.turn === color && ready) {
-      scene.add.image(700, 700, 'message');
-      const has_placed_text = scene.add.text(555, 690, 'Click on the board to place a marble', textStyle3);
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(705, 20, 'Click on the board to place a marble', textStyle3);
     }
     else if (has_placed && !has_selected_q && bo.turn === color && ready) {
-      scene.add.image(700, 700, 'message');
-      const has_placed_text = scene.add.text(500, 690, 'Click on the board to select a quadrant and rotate it', textStyle3);
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(650, 20, 'Click on the board to select a quadrant and rotate it', textStyle3);
     }
     else if (!has_placed && bo.turn !== color || !ready) {
-      scene.add.image(700, 700, 'message');
-      const has_placed_text = scene.add.text(616, 690, 'Waiting for player', textStyle3);
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(766, 20, 'Waiting for player', textStyle3);
     }
 
     /*
@@ -145,41 +145,27 @@ class GameScene extends Phaser.Scene {
       for (let m = 0; m < 6; m++) {
         if (bo.config[l][m] === '0') {
           if (l === 1 || l === 4) {
-            scene.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1');
+            this.p1 = scene.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1');
           } else {
-            scene.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1');
+            this.p1 = scene.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1');
           }
         } else if (bo.config[l][m] === '1') {
           if (l === 1 || l === 4) {
-            scene.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2');
+            this.p2 = scene.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2');
           } else {
-            scene.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2');
+            this.p2 = scene.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2');
           }
         }
       }
     }
-
-    /*
-    // Displays any other necessary GUI images
-    if (bo.turn === color && color === '0') {
-      scene.add.image(200, 430, 'pass_on');
-      scene.add.image(145, 280, 'rc_on');
-      scene.add.image(250, 280, 'ra_on');
-      //statusText.setText('');
-
-    } 
-    else if(bo.turn === color && color === '1'){
-      scene.add.image(200, 430, 'pass_on');
-      scene.add.image(145, 280, 'rc_on');
-      scene.add.image(250, 280, 'ra_on');
-    }
-    */
   }
 
   // Implements client-side connection and data handling
   connect() {
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
     let flag = 0;
-    this.socket = new WebSocket('wss://pentago.herokuapp.com/');
+    this.socket = new WebSocket('ws://192.168.0.160:5000'); //wss://pentago.herokuapp.com/
 
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify({ type: 'name', name: playername}));
@@ -216,19 +202,19 @@ class GameScene extends Phaser.Scene {
 
       if (data.type === 'gameState' && flag <= 1) {
         if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
-          this.add.text(1100, 255, truncate(this.bo.p1Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
-          this.add.text(1100, 300, truncate(this.bo.p2Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
+          this.add.text(270, 537, truncate(this.bo.p1Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
+          this.add.text(270, 577, truncate(this.bo.p2Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
           let serial = 'Room number #';
           serial += this.key;
       
-          this.add.text(20, 130, serial, textStyle4);
+          this.add.text(270, 490, serial, textStyle4);
           flag++;
         }
       }
   
       // Handles the data if the game ends and takes the screenshot of the current game-board
       if (data.type === 'end') {
-        captureGameBoard(this, 390, 100, 580, 580).then(gameBoardScreenshot => {
+        captureGameBoard(this, offset_x - 284, offset_y - 284, 580, 580).then(gameBoardScreenshot => {
           sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
       
           if (data.result === 'win') {
@@ -472,12 +458,29 @@ class GameScene extends Phaser.Scene {
         frameHeight: 295
       }
     )
+
+    this.load.spritesheet(
+      "names",
+      "data/assets/img/names.png",
+      {
+        frameWidth: 280,
+        frameHeight: 80,
+      }
+    )
   }
   
   // Inits variables, defines animations, sounds, displays assets, handles clicks
   create() {
-    const offset_x = this.cameras.main.width / 2;
-    const offset_y = this.cameras.main.height / 2;
+    /* Game variables and contants */
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
+    const dx = offset_x - 283;
+    const dy = offset_y - 283;
+    const q1_coord = (offset_x - 142 + 0.75, offset_y - 142 + 0.75);
+    const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
+    const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
+    const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
+
     this.updateCounter = 0;
     this.cameras.main.setBounds(0, 0, 1366, 768);
     this.count = 0;
@@ -490,20 +493,19 @@ class GameScene extends Phaser.Scene {
     this.running = true;
     this.serial_key = '';
     this.handlersSet = false;
-    this.time_label = this.add.image(1200, 160, 'time_label');
-    this.timerText1 = this.add.text(1175, 145, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
-    this.timerText2 = this.add.text(1175, 145, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
     this.connect();
-    this.counterClockwiseBtn = new Phaser.Geom.Rectangle(100 - 40, 280 - 40, 84, 84);
-    this.clockwiseBtn = new Phaser.Geom.Rectangle(205 - 40, 280 - 40, 84, 84);
-    this.passTurnBtn = new Phaser.Geom.Rectangle(150 - 100, 430 - 60, 203, 123);
-    this.p1Text = this.add.text(1080, 250, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
+
+    this.counterClockwiseBtn = new Phaser.Geom.Rectangle(780 - 40, 685 - 40, 84, 84);
+    this.clockwiseBtn = new Phaser.Geom.Rectangle(885 - 40, 685 - 40, 84, 84);
+    this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
+    this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
+    this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
+    this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
+
+    this.p1Text = this.add.text(1080, 250, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
     this.p2Text = this.add.text(1105, 50, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
     this.statusText = this.add.text(this.cameras.main.width / 2, 700, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
     this.waitingText = this.add.text(this.cameras.main.width / 2, 100, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
-    this.widget_label = this.add.image(1195, 460, 'widget');
-    this.key_label = this.add.image(145, 143, 'key_label');
-    this.title = this.add.image(685, 65, 'title');
     this.move = '';
     this.string_color = '';
     this.moon = null;
@@ -511,15 +513,16 @@ class GameScene extends Phaser.Scene {
     this.hover_2 = null;
     this.hover_3 = null;
     this.hover_4 = null;
+    this.p1 = null;
+    this.p2 = null;
 
-    this.add.image(150, 280, 'control');
-    this.add.image(100, 280, 'rc_on');
-    this.add.image(205, 280, 'ra_on');
-
-    const q1_coord = (offset_x - 142 + 0.75, offset_y - 142 + 0.75);
-    const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
-    const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
-    const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
+    /* GUI initialization */
+    this.time_label = this.add.image(400, 130, 'time_label');
+    this.timerText1 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.timerText2 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.add.image(395, 570, 'names');
+    this.add.image(780, 685, 'rc_on');
+    this.add.image(885, 685, 'ra_on');
 
     const textStyle = {
       fontFamily: 'Arial',
@@ -552,9 +555,6 @@ class GameScene extends Phaser.Scene {
       color: '#FFFFFF',
       wordWrap: { width: 310 }
     };
-
-    this.add.text(1158, 655, 'Moves log', textStyle3);
-    this.add.text(1140, 350, 'Coming soon...', textStyle5);
 
     /*
     COMING SOON - MOVE LOG
@@ -604,7 +604,7 @@ class GameScene extends Phaser.Scene {
             if (!this.has_placed) {
               console.log('[DEBUG] has placed');
               console.log('[GAME] pos: ', pos)
-              const [i, j] = this.bo.handle_click(pos, this.color);
+              const [i, j] = this.bo.handle_click(pos, this.color, dx, dy);
               console.log("[DEBUG] j: ", i);
               console.log("[DEBUG] i: ", j);
               console.log('[DEBUG] ij: ', this.bo.config[j][i]);
@@ -613,13 +613,13 @@ class GameScene extends Phaser.Scene {
                 this.socket.send(JSON.stringify({ type: 'select', i, j, color: this.color }));
                 console.log('[GAME] Data sent to server (select):', { type: 'select', i, j, color: this.color });
                 this.has_placed = true;
-                this.q = this.bo.get_quarter_from_pos(pos);
+                this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
               } else {
                 console.log('[GAME] Warning! invalid placement, please select a free cell');
                 this.has_placed = false;
               }
             } else {
-              this.q = this.bo.get_quarter_from_pos(pos);
+              this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
 
               // Displays the value of the quarter based on the value of q
               if (this.q === 1) {
@@ -715,6 +715,8 @@ class GameScene extends Phaser.Scene {
         }
       }
 
+
+
       if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {
         console.log('[GAME] Clockwise rotation event captured');
         if (this.has_placed === true && this.q !== null) {
@@ -799,9 +801,11 @@ class GameScene extends Phaser.Scene {
   
   // Loops the attributes of various game objects per game logic
   update() {
+    console.log(this.width);
     if (this.gameStateUpdated) {
       this.gameStateUpdated = false;
-      console.log('game state is updated')
+      console.log('game state is updated');
+      console.log("winner: ", this.bo.winner);
       this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
       this.updateDisplayedTimers(this.bo.timers, this.color);
     }
@@ -831,6 +835,12 @@ const config = {
   height: 768,
   backgroundColor: "#232323",
   parent: "gameContainer",
+  scale: {
+    // Fit to window
+    mode: Phaser.Scale.FIT,
+    // Center vertically and horizontally
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   scene: [GameScene],
 };
 
