@@ -3,7 +3,7 @@
 # Play and test it right now
 Click on the following link http://www.pentago.net/ and start a game right the way!
 You are welcome to report any bugs or issues by clicking on the "mail" icon at the top-left corner.
-NOTE: only devices such as Desktop, Mac, most of the tablets are supported. Mobile phones are NOT supported.
+NOTE: only devices such as Desktop, Mac, most of the tablets are supported. Mobile phones are NOT completely supported.
 
 # Game-play summary
 Pentago.net is a real-time 1v1 webgame. Players alternate in turns, and in each turn a marble is placed and a quadrant is rotated. The first
@@ -18,6 +18,7 @@ and WebSockets to handle connections both client and server side.
 - version 0.3: first up and running Pentago version, works with socket and pickle for package encryption, decryption and commutation
 - version 0.5: Pentago's debut on the WWW, script conversion to JS and HTML
 - version 0.7 closed-alpha (RELEASED): The very first game-launch, addressed to testing, bug hunting and fixing
+- version 0.7.1 closed-alpha (RELEASED): Partial mobile support (g-win rescaling),  responsive HTMLs, website and GUI re-designment
 - version 0.9 open-beta (NOT RELEASED): bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support,
   DB implementation, and more
 
