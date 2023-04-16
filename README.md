@@ -18,7 +18,7 @@ and WebSockets to handle connections both client and server side.
 - version 0.3: first up and running Pentago version, works with socket and pickle for package encryption, decryption and commutation
 - version 0.5: Pentago's debut on the WWW, script conversion to JS and HTML
 - version 0.7 closed-alpha (RELEASED): The very first game-launch, addressed to testing, bug hunting and fixing
-- version 0.7.1 closed-alpha (CURRENT) Partial mobile support (g-win rescaling),  responsive HTMLs, website and GUI re-designment
+- version 0.7.1 closed-alpha (CURRENT) Partial mobile support (g-win auto-rescaling),  responsive HTMLs, website and GUI re-designment
 - version 0.9 open-beta (NOT RELEASED): bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support,
   DB implementation, and more
 
