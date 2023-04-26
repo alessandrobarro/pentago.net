@@ -9,24 +9,48 @@
         color: #ffffff;
         background-color: #232323;
         font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
     }
 
     link {
         color: blue;
         text-decoration: underline;
     }
+    @media screen and (max-width: 600px) {
+                .title {
+
+                        width: 50%;
+                        height: auto;
+                }
+        }
+
+        @media screen and (min-width: 601px) {
+                .title {
+                        width: 30%;
+                        height: auto;
+                }
+        }
 </style>
 </head>
 <body>
 
-<h3> Coming soon to Pentago.net</h3>
+<img class="title" id="title" src="data/assets/img/title.PNG">
 <br>
-<p>DEVICES CURRENTLY SUPPORTED: Desktop, Mac, most of the Tablets. Mobile phones are not supported yet!</p>
-<p>Current version: 0.7.0 closed alpha (not open for public users).</p>
-<p>Version 0.9 open-beta (NOT RELEASED): bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support, DB implementation, and more</p>
+<p style="font-weight: bold;">Current game version</p>
+<p>0.9.0-open-beta</p>
 <br>
+<p style="font-weight: bold;">Credits</p>
+<p>Full credits to Mindtwister, the company responsible for the publishment of the board-game, and the invention of itself</p>
+<p>Project manager and developer: Alessandro Barro, Computer Science and Engineering student at Politecnico di Milano
+  (contacts: barroalessandro2003@gmail.com)</p>
+<p>Special thanks to Matteo Colussi, Aerospace Engineering student at Politecnico di Milano (and a dear friend), for making game-arts and design
+  (contacts: matteo.colussi03@gmail.com)</p>
+</p>
+<br>
+<p style="font-weight: bold;">Useful links</p>
 Click on the link below for more infos
-<br>
 <center><a href="https://github.com/basedryo/pentago.net"><p id="link" class="link">GitHub<p></a></center>
 
 </body>

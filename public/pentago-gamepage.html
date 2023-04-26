@@ -58,10 +58,28 @@ Pentago.net
 
             .reg {
                 color: #ffffff;
+                position: relative;
                 font-family: Arial, Helvetica, sans-serif;
                 text-align: center;
                 font-size: 60%;
-                margin-top: 98%;
+                top: 60%;
+            }
+
+            @media screen and (max-width: 600px) {
+                #side {
+                    display: none;
+                }
+            }
+            
+            @media screen and (min-width: 601px) {
+                #side {
+                    background-color: #151515;
+                    text-align: right;
+                    align-items: right;
+                    justify-content: right;
+                    height: 100%;
+                    width: 20%;
+                }
             }
 
         </style>
@@ -72,7 +90,7 @@ Pentago.net
             <img src="data/assets/img/title.PNG" class="title">
             <a href="index.html" style="text-decoration:none"><p class="menu">Home</p></a>
             <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support" style="text-decoration:none"><p class="menu">Contact</p></a>
-            <p class="menu">Settings</p>
+            <a href="index.html" style="text-decoration:none"><p class="menu">Subscribe</p></a>
             <p class="reg"> © Pentago.net</p>
         </div>
     </body>
