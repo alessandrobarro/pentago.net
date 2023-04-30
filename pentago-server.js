@@ -1,6 +1,5 @@
 /*
 Pentago.net
-All rights reserved.
 */
 
 // Imports ecessary modules
@@ -14,8 +13,8 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = process.env.PORT || 5000;
-const IP = '//pentago.herokuapp.com/';
+const PORT = 5000; //process.env.PORT || 5000
+const IP = '192.168.0.160'; //pentago.herokuapp.com/
 const URL = 'wss://' + IP + ':' + '443';
 
 const express = require('express');
@@ -400,21 +399,19 @@ async function handleClientMessage(socket) {
   });
 
   socket.on('close', () => {
-    if (gameId === '0') {
-      bo.winner = '0';
-    }
-    else if (gameId === '1') {
-      bo.winner = '1';
-    }
-    sendGameState(0, true);
-    sendGameState(1, true); //works only if the not playing player disconnects
+    console.log(`Player ${currentId} disconnected`);
 
-    connections--;
+    // If the game has a winner, do nothing
+    if (bo.winner !== '-1') return;
 
-    bo.clients = bo.clients.filter(client => client !== currentId);
-    if (bo.clients.length === 0) {
+    // If both players are connected, set the winner as the other player and update the game state
+    if (bo.clients.length !== 2) {
+      bo.winner = currentId === '0' ? '1' : '0';
+      sendGameState(gameId);
+      console.log("game winner: ", bo.winner);
       delete games[gameId];
     }
+
     console.log(`[GAME] Game ${gameId} ended`);
     console.log(`[DISCONNECT] Player ${name} left game ${gameId}`);
     
