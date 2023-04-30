@@ -408,8 +408,6 @@ async function handleClientMessage(socket) {
     if (bo.clients.length !== 2) {
       bo.winner = currentId === '0' ? '1' : '0';
       sendGameState(gameId);
-      console.log("game winner: ", bo.winner);
-      delete games[gameId];
     }
 
     console.log(`[GAME] Game ${gameId} ended`);
