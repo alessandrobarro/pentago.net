@@ -13,8 +13,8 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = 5000; //process.env.PORT || 5000
-const IP = '192.168.0.160'; //pentago.herokuapp.com/
+const PORT = process.env.PORT || 5000;
+const IP = 'pentago.herokuapp.com/';
 const URL = 'wss://' + IP + ':' + '443';
 
 const express = require('express');
