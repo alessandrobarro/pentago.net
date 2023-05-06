@@ -76,9 +76,8 @@ async function handleClientMessage(socket) {
     for(let i = 0; i < 6; i++){
         random_game_key += characters[Math.floor(Math.random() * 16)]
     }
-    console.log(random_game_key);
     bo.key = random_game_key;
-    console.log("bo key: ", bo.key);
+    console.log("[DATA] Game key: ", bo.key);
     bo.ready = true;
     bo.startTime = Date.now();
     console.log('[DATA] Starting time: ', bo.startTime);
