@@ -1,8 +1,11 @@
 /*
-Pentago.net
+---------------------------------------
+           www.pentago.net
+---------------------------------------
+
+https://github.com/basedryo/pentago.net
 */
 
-// Imports ecessary modules
 import Board from './public/game-board.js';
 import { createRequire } from 'module';
 import fs from 'fs';
@@ -12,27 +15,20 @@ import { dirname } from 'path';
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 const PORT = process.env.PORT || 5000;
 const IP = 'pentago.herokuapp.com/';
 const URL = 'wss://' + IP + ':' + '443';
-
 const express = require('express');
 const app = express()
-
 const http_server = require('http').createServer(app);
 const WebSocket = require('ws');
-
-// Creates a socket
 const server = new WebSocket.Server({ server: http_server });
 
+// Web-socket server setup
 app.use(express.static('public'))
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
-
 http_server.listen(PORT, () => console.log('[DATA] Listening...'));
-
 console.log('[START] Waiting for a connection');
-
 const games = {};
 let connections = 0;
 
@@ -51,23 +47,20 @@ async function handleClientMessage(socket) {
       break;
     }
   }
-  
   if (gameId === -1) {
     gameId = Object.keys(games).length;
-    games[gameId] = new Board(); //566, 566
+    games[gameId] = new Board(); // Initializes a game
     games[gameId].sockets = {}; // Initializes sockets property
     games[gameId].clients = []; // Initializes clients property
     games[gameId].colors = {}; // Initializes colors property
     games[gameId].colors['0'] = '0'; // Assigns color '0' to player '0'
     games[gameId].colors['1'] = '1'; // Assigns color '1' to player '1'
-    games[gameId].timers = { '0': 600, '1': 600 };
-
+    games[gameId].timers = { '0': 600, '1': 600 }; // Initializes timers
   }
-  
+
+  // Assigns the client to the game
   const bo = games[gameId];
   let currentId;
-  
-  // Assigns the client to the game
   if (bo.clients.length === 0) {
     currentId = '0';
     bo.clients.push('0');
@@ -90,30 +83,23 @@ async function handleClientMessage(socket) {
     bo.startTime = Date.now();
     console.log('[DATA] Starting time: ', bo.startTime);
   }
-
   if (bo.ready && !bo.updateTimersInterval) {
     bo.updateTimersInterval = setInterval(() => {
       updateTimers(gameId);
       sendGameState(gameId);
     }, 1000);
   }
-
-
-  //console.log(`[DEBUG] currentId: ${currentId}`);
-  //console.log(`[DEBUG] gameId: ${gameId}`);
-  //console.log(`[DEBUG] bo:`, bo);
+  console.log(`[DEBUG] gameId: ${gameId}`);
   
   function sendGameState(gameId, skipTimers = false) {
     const bo = games[gameId];
     if (!bo) return;
-
     if (!skipTimers) {
       for (const clientId of bo.clients) {
         const clientSocket = bo.sockets[clientId];
         clientSocket.send(JSON.stringify({ type: 'updateTimers', timers: bo.timers }));
       }
     }
-  
     for (const clientId of bo.clients) {
       const clientSocket = bo.sockets[clientId];
       clientSocket.send(JSON.stringify({ type: 'updateTimers', timers: bo.timers }));
@@ -125,13 +111,10 @@ async function handleClientMessage(socket) {
       //console.log(`Sending gameState to clientId: ${clientId}:`, gameState);
       clientSocket.send(gameState);
     }
-    //console.log('[DEBUG] Current turn:', bo.turn);
-
     if (bo.winner !== '-1') {
       const winHTML = fs.readFileSync('./public/pentago-win.html', 'utf-8');
       const loseHTML = fs.readFileSync('./public/pentago-lose.html', 'utf-8');
-      const tieHTML = fs.readFileSync('./public/pentago-tie.html', 'utf-8');
-      
+      const tieHTML = fs.readFileSync('./public/pentago-tie.html', 'utf-8'); 
       if (bo.winner === '0' || bo.winner === '1') {
         bo.sockets['0'].send(JSON.stringify({ type: 'end', result: bo.winner === '0' ? 'win' : 'lose', html: bo.winner === '0' ? winHTML : loseHTML }));
         bo.sockets['1'].send(JSON.stringify({ type: 'end', result: bo.winner === '1' ? 'win' : 'lose', html: bo.winner === '1' ? winHTML : loseHTML }));
@@ -140,10 +123,7 @@ async function handleClientMessage(socket) {
         bo.sockets['1'].send(JSON.stringify({ type: 'end', result: bo.winner === '2' ? 'tie' : 'tie', html: bo.winner === '2' ? tieHTML : tieHTML}));
       }
     }
-    
   }
-  
-  
   
   if (currentId === '1') {
     sendGameState(gameId);
@@ -162,18 +142,15 @@ async function handleClientMessage(socket) {
   function updateTimers(gameId) {
     const bo = games[gameId];
     if (!bo || !bo.ready) return;
-  
     const elapsedTime = 1;
     const currentPlayer = bo.turn;
     const otherPlayer = currentPlayer === '0' ? '1' : '0';
-  
     if (bo.timers[currentPlayer] > 0) {
       bo.timers[currentPlayer] = Math.max(bo.timers[currentPlayer] - elapsedTime, 0); // Prevent negative values
     } else {
       bo.winner = otherPlayer;
       // Handle the end of the game due to timeout
     }
-  
     bo.startTime = Date.now();
   }
 
@@ -204,7 +181,6 @@ async function handleClientMessage(socket) {
 
   function sendReadyMessage() {
     const readyMessage = JSON.stringify({ type: 'ready' });
-  
     for (const clientId of bo.clients) {
       const clientSocket = bo.sockets[clientId];
       clientSocket.send(readyMessage);
@@ -215,7 +191,6 @@ async function handleClientMessage(socket) {
     if (!(gameId in games)) {
       return;
     }
-  
     try {
       const msg = data.toString();
       //console.log('data is being received: ', msg);
@@ -223,27 +198,17 @@ async function handleClientMessage(socket) {
         return;
       } else {
         const parsedMsg = JSON.parse(msg);
-
         if (parsedMsg.type === 'gameBoardScreenshot') {
           const screenshot = parsedMsg.screenshot;
           bo.sockets['0'].send(JSON.stringify({ type: 'gameBoardScreenshot', screenshot }));
           bo.sockets['1'].send(JSON.stringify({ type: 'gameBoardScreenshot', screenshot }));
         }
-  
-        // Handles "select" command
         if (parsedMsg.type === 'select') {
           const { i: row, j: col, color } = parsedMsg;
           if (bo.config[col][row] === '-1') {
-              //console.log("col: ", col);
-              //console.log("row ", row);
-              //console.log("color ", color);
               bo.move(parseInt(col), parseInt(row), color)
               bo.last = { row: parseInt(col), col: parseInt(row) };
           }
-          //const parsedRow = parseInt(row);
-          //const parsedCol = parseInt(col);
-          //const cell = bo.config[row][col]; 
-          
           for (let l = 0; l < 6; l++) {
             for (let m = 0; m < 6; m++) {
               if (bo.config[l][m] === '0') {
@@ -257,112 +222,98 @@ async function handleClientMessage(socket) {
               }
             }
           }
-
           const winner = bo.check_winner();
           if (winner !== null) {
               bo.winner = winner;
           }
-
-          // Sends the updated game state to both clients
-          sendGameState(gameId, true);
-          bo.sockets['0'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
-          bo.sockets['1'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
-  
+        // Sends the updated game state to both clients
+        sendGameState(gameId, true);
+        bo.sockets['0'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
+        bo.sockets['1'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
         // Handles "quarter" command
         } else if (parsedMsg.type === 'quarter') {
-        const { q: quarter, alpha: alpha } = parsedMsg;
-        //console.log('parsedMsg: ', parsedMsg);
-        //console.log('quarter before rotation: ', quarter);
-        //console.log('alpha before rotation: ', alpha);
-        //console.log('board configuration before rotation:', bo.config);
-        // Updates the turn only after a successful rotation
-
-        let log_size = bo.log.length;
-        
-        if (alpha === '1') {
-          for (let i = 0; i < log_size; i++) {
-            let truncated_log = bo.log[i].substring(1);
-            if (truncated_log[0] === '1' && truncated_log[1] === '1') {
-              bo.log[i][2] = '3';
+          const { q: quarter, alpha: alpha } = parsedMsg;
+          let log_size = bo.log.length;
+          if (alpha === '1') {
+            for (let i = 0; i < log_size; i++) {
+              let truncated_log = bo.log[i].substring(1);
+              if (truncated_log[0] === '1' && truncated_log[1] === '1') {
+                bo.log[i][2] = '3';
+              }
+              else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
+                bo.log[i][1] = '3';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
+                bo.log[i][2] = '1';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
+                bo.log[i][1] = '1';
+              }
+              else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '3';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
+                bo.log[i][1] = '3';
+                bo.log[i][2] = '2';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '1';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
+                bo.log[i][1] = '1';
+                bo.log[i][2] = '2';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '2';
+              }
             }
-            else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
-              bo.log[i][1] = '3';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
-              bo.log[i][2] = '1';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
-              bo.log[i][1] = '1';
-            }
-            else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '3';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
-              bo.log[i][1] = '3';
-              bo.log[i][2] = '2';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '1';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
-              bo.log[i][1] = '1';
-              bo.log[i][2] = '2';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '2';
-            }
-          }
-        } else if (alpha === '-1') {
-          for (let i = 0; i < log_size; i++) {
-            let truncated_log = bo.log[i].substring(1);
-            if (truncated_log[0] === '1' && truncated_log[1] === '1') {
-              bo.log[i][1] = '3';
-            }
-            else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
-              bo.log[i][2] = '1';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
-              bo.log[i][2] = '1';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
-              bo.log[i][2] = '3';
-            }
-            else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '1';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
-              bo.log[i][1] = '1';
-              bo.log[i][2] = '2';
-            }
-            else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '3';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
-              bo.log[i][1] = '3';
-              bo.log[i][2] = '2';
-            }
-            else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
-              bo.log[i][1] = '2';
-              bo.log[i][2] = '2';
+          } else if (alpha === '-1') {
+            for (let i = 0; i < log_size; i++) {
+              let truncated_log = bo.log[i].substring(1);
+              if (truncated_log[0] === '1' && truncated_log[1] === '1') {
+                bo.log[i][1] = '3';
+              }
+              else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
+                bo.log[i][2] = '1';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
+                bo.log[i][2] = '1';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
+                bo.log[i][2] = '3';
+              }
+              else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '1';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
+                bo.log[i][1] = '1';
+                bo.log[i][2] = '2';
+              }
+              else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '3';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
+                bo.log[i][1] = '3';
+                bo.log[i][2] = '2';
+              }
+              else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
+                bo.log[i][1] = '2';
+                bo.log[i][2] = '2';
+              }
             }
           }
-        }
-
-        if (bo.rotate(quarter, parseInt(alpha))) {
-          bo.turn = bo.turn === '0' ? '1' : '0';
-        }
-        //console.log('board configuration after rotation:', bo.config);
-
-        const winner = bo.check_winner();
-        if (winner !== null) {
-          bo.winner = winner;
-        }
-  
+          if (bo.rotate(quarter, parseInt(alpha))) {
+            bo.turn = bo.turn === '0' ? '1' : '0';
+          }
+          const winner = bo.check_winner();
+          if (winner !== null) {
+            bo.winner = winner;
+          }
         // Handles other commands
         } else if (parsedMsg.type === 'winner') {
           bo.winner = parsedMsg.winner;
@@ -383,7 +334,6 @@ async function handleClientMessage(socket) {
           console.error(`[ERROR] Invalid command: ${msg}`);
         }
       }
-  
       if (bo.ready) {
         const elapsedTime = 1;
         if (bo.turn === '0') {
@@ -400,33 +350,23 @@ async function handleClientMessage(socket) {
 
   socket.on('close', () => {
     console.log(`Player ${currentId} disconnected`);
-
-    // If the game has a winner, do nothing
     if (bo.winner !== '-1') return;
-
-    // If both players are connected, set the winner as the other player and update the game state
     if (bo.clients.length !== 2) {
       bo.winner = currentId === '0' ? '1' : '0';
       sendGameState(gameId);
     }
-
     console.log(`[GAME] Game ${gameId} ended`);
-    console.log(`[DISCONNECT] Player ${name} left game ${gameId}`);
-    
     clearInterval(bo.updateTimersInterval);
   });
 }
 
 server.on('connection', (socket) => {
   readSpectatorIds();
-
   if (connections < 6) {
     const isSpectator = false;
-    console.log('[CONNECT] New connection');
-
+    console.log('[DATA] New connection: ', socket.remoteAddress);
     console.log('[DATA] Number of Connections:', connections + 1);
     console.log('[DATA] Number of Games:', Object.keys(games).length);
-
     handleClientMessage(socket, isSpectator);
   }
 });

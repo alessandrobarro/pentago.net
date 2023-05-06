@@ -1,6 +1,9 @@
 /*
-Pentago.net
-All rights reserved.
+---------------------------------------
+           www.pentago.net
+---------------------------------------
+
+https://github.com/basedryo/pentago.net
 */
 
 // Board module contains game rules and methods
@@ -10,7 +13,6 @@ var HOST = location.origin.replace(/^http/, 'ws')
 const IP = 'pentago.herokuapp.com/';
 console.log('[DATA] Host: ', HOST);
 var el;
-
 const playername = localStorage.getItem("nickname");
 
 function truncate(str, length) {
@@ -134,12 +136,6 @@ class GameScene extends Phaser.Scene {
       const has_placed_text = scene.add.text(766, 20, 'Waiting for player', textStyle3);
     }
 
-    /*
-    if (color === 's') {
-      const txt3 = scene.add.text(scene.cameras.main.width / 2, 10, 'Spectator mode', textStyle).setOrigin(0.5, 0);
-    }
-    */
-
     // Updates the marble placed on the board
     for (let l = 0; l < 6; l++) {
       for (let m = 0; m < 6; m++) {
@@ -201,8 +197,8 @@ class GameScene extends Phaser.Scene {
 
       if (data.type === 'gameState' && flag <= 1) {
         if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
-          this.add.text(270, 537, truncate(this.bo.p1Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
-          this.add.text(270, 577, truncate(this.bo.p2Name, 9), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
+          this.add.text(270, 537, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
+          this.add.text(270, 577, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
           let serial = 'Room number #';
           serial += this.key;
       
@@ -493,14 +489,12 @@ class GameScene extends Phaser.Scene {
     this.serial_key = '';
     this.handlersSet = false;
     this.connect();
-
     this.counterClockwiseBtn = new Phaser.Geom.Rectangle(780 - 40, 685 - 40, 84, 84);
     this.clockwiseBtn = new Phaser.Geom.Rectangle(885 - 40, 685 - 40, 84, 84);
     this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
     this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
     this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
     this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
-
     this.p1Text = this.add.text(1080, 250, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
     this.p2Text = this.add.text(1105, 50, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
     this.statusText = this.add.text(this.cameras.main.width / 2, 700, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
@@ -619,7 +613,6 @@ class GameScene extends Phaser.Scene {
               }
             } else {
               this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
-
               // Displays the value of the quarter based on the value of q
               if (this.q === 1) {
                 if (this.hover_1) {
@@ -713,8 +706,6 @@ class GameScene extends Phaser.Scene {
           }
         }
       }
-
-
 
       if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {
         console.log('[GAME] Clockwise rotation event captured');
@@ -811,8 +802,6 @@ class GameScene extends Phaser.Scene {
   
     if (this.needRedraw) {
       this.needRedraw = false;
-      //const show = this.color === 's' ? 'Waiting for Players' : 'Waiting for Player';
-      //this.waitingText.setText(show);
       this.waitingText.visible = !this.ready;
       
       if (this.ready) {

@@ -1,4 +1,10 @@
-<!-- PENTAGO.NET (CLOSED-BETA 0.8.9) -->
+<!-- 
+---------------------------------------
+           www.pentago.net
+---------------------------------------
+
+https://github.com/basedryo/pentago.net
+-->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -17,16 +23,16 @@
       <script src="jQueryAssets/jquery-1.11.1.min.js"></script>
       <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js"></script>
       <script type="text/javascript">
-          (function () {
-            emailjs.init("E4qHL5mAMjkm7U8Qa");
-          })();
+        (function () {
+          emailjs.init("E4qHL5mAMjkm7U8Qa");
+        })();
       </script>
       <script>
         function showTuPopup() {
           var popup = document.getElementById("tu-myPopup");
           popup.classList.toggle("show");
         }
-        </script>
+      </script>
     </head>
   <body>
     <div class="rotate-device" id="rotate-device">
@@ -34,6 +40,7 @@
           <img src="data/assets/img/rotate.png">
         </center>
     </div>
+
     <!-- MAIN PAGE MENU & TOOLBAR -->
     <section class="toolbar" id="toolbar">
       <div class="menu" id="menu">
@@ -108,10 +115,8 @@
       const email = document.getElementById('subscribe_email');
       document.getElementById('sub-form').addEventListener('submit', function(event) {
         event.preventDefault();
-
         const serviceID = 'default_service';
         const templateID = 'template_nw53s49';
-
         emailjs.sendForm(serviceID, templateID, this)
           .then(() => {
             alert('Thank you for subscribing to our newsletter!');
