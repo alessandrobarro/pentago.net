@@ -485,8 +485,8 @@ class GameScene extends Phaser.Scene {
     const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
     const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
     const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
-    const marble_placement_sfx = this.sfx_1.add('marble_placement');
-    const quarter_rotation_sfx = this.sfx_2.add('quarter_rotation');
+    const marble_placement_sfx = this.sound.add('marble_placement');
+    const quarter_rotation_sfx = this.sound.add('quarter_rotation');
 
     this.updateCounter = 0;
     this.cameras.main.setBounds(0, 0, 1366, 768);
