@@ -462,6 +462,16 @@ class GameScene extends Phaser.Scene {
         frameHeight: 80,
       }
     )
+             
+    this.load.audio(
+       "marble_placement",
+       "data/assets/audio/marble_placement_sfx.mp3"
+    );
+    
+    this.load.audio(
+       "quarter_rotation",
+       "data/assets/audio/quarter_rotation_sfx.mp3"
+    );
   }
   
   // Inits variables, defines animations, sounds, displays assets, handles clicks
@@ -475,6 +485,8 @@ class GameScene extends Phaser.Scene {
     const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
     const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
     const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
+    const marble_placement_sfx = this.sfx_1.add('marble_placement');
+    const quarter_rotation_sfx = this.sfx_2.add('quarter_rotation');
 
     this.updateCounter = 0;
     this.cameras.main.setBounds(0, 0, 1366, 768);
@@ -585,6 +597,7 @@ class GameScene extends Phaser.Scene {
           console.log('[DEBUG] Passed the second condition');
           const pos = { x: pointer.x, y: pointer.y };
           if (pos.x >= offset_x - 284 && pos.x <= offset_x + 284 && pos.y >= offset_y - 284 && pos.y <= offset_y + 284) {
+            marble_placement_sfx.play();
             console.log('[DEBUG] Passed the third condition');
             console.log("[GAME] Game state:");
             console.log("[GAME] this.has_placed:", this.has_placed);
@@ -717,6 +730,7 @@ class GameScene extends Phaser.Scene {
         console.log('[GAME] Pass turn event captured');
         if (this.alpha !== 0) {
           if (this.color === this.bo.turn && this.bo.ready && this.q !== null) {
+            quarter_rotation_sfx.play();
             this.socket.send(JSON.stringify({ type: 'quarter', q: this.q, alpha: this.alpha }));
             console.log('[GAME] Data sent to server (quarter):', { type: 'quarter', q: this.q, alpha: this.alpha });
             this.has_placed = false;
