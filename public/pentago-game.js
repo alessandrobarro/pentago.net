@@ -10,7 +10,7 @@ https://github.com/basedryo/pentago.net
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago.herokuapp.com/';
+const IP = '192.168.0.160'; //pentago.herokuapp.com/
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -161,7 +161,8 @@ class GameScene extends Phaser.Scene {
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
     let flag = 0;
-    this.socket = new WebSocket('wss://pentago.herokuapp.com/');
+    let count = 0;
+    this.socket = new WebSocket('ws://192.168.0.160:5000'); //wss://pentago.herokuapp.com/
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify({ type: 'name', name: playername}));
       console.log('Connected to the server');
@@ -195,14 +196,21 @@ class GameScene extends Phaser.Scene {
         color: '#FFFFFF'
       };
 
-      if (data.type === 'gameState' && flag <= 1) {
+      if (data.type === 'gameState' && flag <= 1) { // looping problem
+        let serial = 'Room number #';
+        if (data.key !== undefined) {
+          serial += data.key;
+        } else {
+          serial += '';
+        }
+        if (count < 1){
+          this.add.text(270, 490, serial, textStyle4);
+          count++;
+        }
         if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
           this.add.text(270, 537, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
           this.add.text(270, 577, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
-          let serial = 'Room number #';
-          serial += this.key;
-      
-          this.add.text(270, 490, serial, textStyle4);
+          serial = '';
           flag++;
         }
       }
@@ -503,6 +511,7 @@ class GameScene extends Phaser.Scene {
     this.connect();
     this.counterClockwiseBtn = new Phaser.Geom.Rectangle(780 - 40, 685 - 40, 84, 84);
     this.clockwiseBtn = new Phaser.Geom.Rectangle(885 - 40, 685 - 40, 84, 84);
+    this.copykeyBtn = new Phaser.Geom.Rectangle(270, 490, 250, 20);
     this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
     this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
     this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
@@ -718,6 +727,16 @@ class GameScene extends Phaser.Scene {
             }
           }
         }
+      }
+
+      if (Phaser.Geom.Rectangle.Contains(this.copykeyBtn, pointer.x, pointer.y)) {
+        console.log('[GAME] Game key copied to the clipboard');
+        const tempInput = document.createElement("input");
+        tempInput.value = this.key;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
       }
 
       if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {

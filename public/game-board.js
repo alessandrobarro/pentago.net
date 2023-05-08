@@ -37,6 +37,7 @@ class Board {
         this.selected_box = null;
         this.selected_quarter = null;
         this.key = '';
+        this.private = null;
         this.p1Name = "";
         this.p2Name = "";
         this.turn = '0';

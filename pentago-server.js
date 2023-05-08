@@ -15,8 +15,8 @@ import { dirname } from 'path';
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PORT = process.env.PORT || 5000;
-const IP = 'pentago.herokuapp.com/';
+const PORT = 5000; //process.env.PORT || 5000
+const IP = '192.168.0.160'; //pentago.herokuapp.com/
 const URL = 'wss://' + IP + ':' + '443';
 const express = require('express');
 const app = express()
@@ -25,12 +25,22 @@ const WebSocket = require('ws');
 const server = new WebSocket.Server({ server: http_server });
 
 // Web-socket server setup
-app.use(express.static('public'))
-app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
+app.use(express.static('public'));
+app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html'); });
 http_server.listen(PORT, () => console.log('[DATA] Listening...'));
 console.log('[START] Waiting for a connection');
 const games = {};
 let connections = 0;
+
+function generateSerialKey(){
+  let characters = "0123456789abcdef"
+  let random_game_key = ""
+  for(let i = 0; i < 6; i++){
+      random_game_key += characters[Math.floor(Math.random() * 16)]
+  }
+
+  return random_game_key;
+}
 
 function readSpectatorIds() {
   //pass
@@ -38,7 +48,7 @@ function readSpectatorIds() {
 
 async function handleClientMessage(socket) {
   let gameId = -1;
-  let name = ""
+  let name = "";
 
   // Finds an existing game with an open slot or create a new one
   for (const game in games) {
@@ -56,6 +66,7 @@ async function handleClientMessage(socket) {
     games[gameId].colors['0'] = '0'; // Assigns color '0' to player '0'
     games[gameId].colors['1'] = '1'; // Assigns color '1' to player '1'
     games[gameId].timers = { '0': 600, '1': 600 }; // Initializes timers
+    games[gameId].key = '';
   }
 
   // Assigns the client to the game
@@ -66,18 +77,13 @@ async function handleClientMessage(socket) {
     bo.clients.push('0');
     bo.sockets[currentId] = socket;
     bo.colors = { '0': '0' };
+    bo.key = generateSerialKey();
+    console.log("[DATA] Game key: ", bo.key);
   } else {
     currentId = '1';
     bo.clients.push('1');
     bo.sockets[currentId] = socket;
     bo.colors['1'] = '1';
-    let characters = "0123456789abcdef"
-    let random_game_key = ""
-    for(let i = 0; i < 6; i++){
-        random_game_key += characters[Math.floor(Math.random() * 16)]
-    }
-    bo.key = random_game_key;
-    console.log("[DATA] Game key: ", bo.key);
     bo.ready = true;
     bo.startTime = Date.now();
     console.log('[DATA] Starting time: ', bo.startTime);
@@ -348,7 +354,7 @@ async function handleClientMessage(socket) {
   });
 
   socket.on('close', () => {
-    console.log(`Player ${currentId} disconnected`);
+    console.log(`[GAME] Player ${currentId} disconnected`);
     if (bo.winner !== '-1') return;
     if (bo.clients.length !== 2) {
       bo.winner = currentId === '0' ? '1' : '0';
@@ -356,16 +362,17 @@ async function handleClientMessage(socket) {
     }
     console.log(`[GAME] Game ${gameId} ended`);
     clearInterval(bo.updateTimersInterval);
+    delete games[gameId];
+    connections = connections - 2;
   });
 }
 
-server.on('connection', (socket) => {
+server.on('connection', (socket, req) => {
   readSpectatorIds();
-  if (connections < 6) {
-    const isSpectator = false;
-    console.log('[DATA] New connection: ', socket.remoteAddress);
-    console.log('[DATA] Number of Connections:', connections + 1);
-    console.log('[DATA] Number of Games:', Object.keys(games).length);
-    handleClientMessage(socket, isSpectator);
-  }
+  const isSpectator = false;
+  const ip = req.socket.remoteAddress;
+  console.log('[DATA] New connection from:', ip);
+  console.log('[DATA] Number of Connections:', connections + 1);
+  console.log('[DATA] Number of Games:', Object.keys(games).length);
+  handleClientMessage(socket, isSpectator);
 });
