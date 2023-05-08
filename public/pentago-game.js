@@ -193,7 +193,8 @@ class GameScene extends Phaser.Scene {
       const textStyle4 = {
         fontFamily: 'Arial',
         fontSize: 23,
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        underline: true
       };
 
       if (data.type === 'gameState' && flag <= 1) { // looping problem
