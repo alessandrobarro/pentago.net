@@ -24,7 +24,7 @@ and WebSockets to handle connections both client and server side.
 - version 0.9.1 open-beta (NOT RELEASED): bug fixing, minor adjustments, open to public users
 
 # Credits
-- Full credits to Mindtwister, the company responsible for the publishment of the board-game, and the invention of it itself
+- Full credits to Mindtwister (Martinex), the company responsible for the publishment of the board-game, and the invention of it itself
 - Project manager and developer: Alessandro Barro, Computer Science and Engineering student at Politecnico di Milano
   (contacts: barroalessandro2003@gmail.com)
 - Special thanks to Matteo Colussi, Aerospace Engineering student at Politecnico di Milano (and a dear friend), for making game-arts and design
