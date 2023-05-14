@@ -15,8 +15,8 @@ import { dirname } from 'path';
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PORT = process.env.PORT || 5000
-const IP = '/pentago.herokuapp.com/';
+const PORT = 5000; //process.env.PORT || 5000
+const IP = '192.168.1.56'; //pentago.herokuapp.com/
 const URL = 'wss://' + IP + ':' + '443';
 const express = require('express');
 const app = express()
@@ -27,9 +27,10 @@ const server = new WebSocket.Server({ server: http_server });
 // Web-socket server setup
 app.use(express.static('public'));
 app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html'); });
-http_server.listen(PORT, () => console.log('[DATA] Listening...'));
+http_server.listen(PORT, () => console.log('[START] Listening...'));
 console.log('[START] Waiting for a connection');
 const games = {};
+const loopbackKey = '000000';
 let connections = 0;
 
 function generateSerialKey(){
@@ -46,27 +47,59 @@ function readSpectatorIds() {
   //pass
 }
 
-async function handleClientMessage(socket) {
-  let gameId = -1;
-  let name = "";
-
-  // Finds an existing game with an open slot or create a new one
+function isGameKeyValid(gameKey) {
   for (const game in games) {
-    if (!games[game].ready) {
-      gameId = game;
-      break;
+    if (games[game].key === gameKey && !games[game].ready) {
+      return true;
     }
   }
-  if (gameId === -1) {
-    gameId = Object.keys(games).length;
-    games[gameId] = new Board(); // Initializes a game
-    games[gameId].sockets = {}; // Initializes sockets property
-    games[gameId].clients = []; // Initializes clients property
-    games[gameId].colors = {}; // Initializes colors property
-    games[gameId].colors['0'] = '0'; // Assigns color '0' to player '0'
-    games[gameId].colors['1'] = '1'; // Assigns color '1' to player '1'
-    games[gameId].timers = { '0': 600, '1': 600 }; // Initializes timers
-    games[gameId].key = '';
+  return false;
+}
+
+
+async function handleClientMessage(socket, gType, requestedKey, name) {
+  let gameId = -1;
+  const playerName = name;
+  const INDEX = fs.readFileSync('./public/index.html', 'utf-8'); 
+
+  if (!requestedKey) {
+    requestedKey = 'PUBLIC';
+  }
+
+  // Finds an existing game with an open slot or create a new one
+  let foundGame = false;
+  for (const game in games) {
+    if (!games[game].ready) {
+      if (!games[game].private && gType === '0' && requestedKey === 'PUBLIC') {
+        gameId = game;
+        foundGame = true;
+        break;
+      } else if (games[game].private && gType === '1' && requestedKey === games[game].key) {
+        gameId = game;
+        foundGame = true;
+        break;
+      }
+    }
+  }
+
+  // Creates a new game if no existing game found
+  if (!foundGame) {
+    if (gType === '0' || (gType === '1' && requestedKey === loopbackKey)) {
+      gameId = Object.keys(games).length;
+      games[gameId] = new Board(); // Initializes a game
+      games[gameId].sockets = {}; // Initializes sockets property
+      games[gameId].clients = []; // Initializes clients property
+      games[gameId].colors = {}; // Initializes colors property
+      games[gameId].colors['0'] = '0'; // Assigns color '0' to player '0'
+      games[gameId].colors['1'] = '1'; // Assigns color '1' to player '1'
+      games[gameId].timers = { '0': 600, '1': 600 }; // Initializes timers
+      games[gameId].key = generateSerialKey();
+      games[gameId].private = gType === '1' ? true : false;
+    } else {
+      socket.send(JSON.stringify({ type: 'error', message: 'Invalid game type or requested key' }));
+      console.log("[ERROR]" + playerName + "joined an inexistent room, redirecting to index.html...");
+      return;
+    }
   }
 
   // Assigns the client to the game
@@ -77,8 +110,7 @@ async function handleClientMessage(socket) {
     bo.clients.push('0');
     bo.sockets[currentId] = socket;
     bo.colors = { '0': '0' };
-    bo.key = generateSerialKey();
-    console.log("[DATA] Game key: ", bo.key);
+    console.log("[DATA] Game S-key: ", bo.key);
   } else {
     currentId = '1';
     bo.clients.push('1');
@@ -88,14 +120,26 @@ async function handleClientMessage(socket) {
     bo.startTime = Date.now();
     console.log('[DATA] Starting time: ', bo.startTime);
   }
+
   if (bo.ready && !bo.updateTimersInterval) {
     bo.updateTimersInterval = setInterval(() => {
       updateTimers(gameId);
       sendGameState(gameId);
     }, 1000);
   }
-  console.log(`[DEBUG] gameId: ${gameId}`);
-  
+
+  if (currentId === '0') {
+    bo.p1Name = playerName;
+  } else if (currentId === '1') {
+    bo.p2Name = playerName;
+  }
+
+  console.log(`[DATA] Game ID: ${gameId}`);
+  console.log('[DATA] Game type (0: public, 1: private): ', gType);
+  console.log('[DATA] Game R-key: ',requestedKey);
+  console.log('[DATA] Player name: ', name);
+  console.log('---------------------------------------------------------------------------');
+
   function sendGameState(gameId, skipTimers = false) {
     const bo = games[gameId];
     if (!bo) return;
@@ -127,6 +171,7 @@ async function handleClientMessage(socket) {
         bo.sockets['0'].send(JSON.stringify({ type: 'end', result: bo.winner === '2' ? 'tie' : 'tie', html: bo.winner === '2' ? tieHTML : tieHTML}));
         bo.sockets['1'].send(JSON.stringify({ type: 'end', result: bo.winner === '2' ? 'tie' : 'tie', html: bo.winner === '2' ? tieHTML : tieHTML}));
       }
+      delete games[gameId];
     }
   }
   
@@ -154,7 +199,6 @@ async function handleClientMessage(socket) {
       bo.timers[currentPlayer] = Math.max(bo.timers[currentPlayer] - elapsedTime, 0); // Prevent negative values
     } else {
       bo.winner = otherPlayer;
-      // Handle the end of the game due to timeout
     }
     bo.startTime = Date.now();
   }
@@ -326,15 +370,6 @@ async function handleClientMessage(socket) {
         } else if (parsedMsg.type === 'tie') {
           bo.winner = '2';
           //console.log(`[GAME] Tie in game ${gameId}`);
-        } else if (parsedMsg.type === 'name') {
-          const playerName = parsedMsg.name;
-          if (currentId === '0') {
-            bo.p1Name = playerName;
-            //name = playerName;
-          } else if (currentId === '1') {
-            bo.p2Name = playerName;
-            //name = playerName;
-          }
         } else {
           console.error(`[ERROR] Invalid command: ${msg}`);
         }
@@ -354,13 +389,13 @@ async function handleClientMessage(socket) {
   });
 
   socket.on('close', () => {
-    console.log(`[GAME] Player ${currentId} disconnected`);
+    console.log(`[DATA] Player ${currentId} disconnected`);
     if (bo.winner !== '-1') return;
     if (bo.clients.length !== 2) {
       bo.winner = currentId === '0' ? '1' : '0';
       sendGameState(gameId);
     }
-    console.log(`[GAME] Game ${gameId} ended`);
+    console.log(`[DATA] Game ${gameId} ended`);
     clearInterval(bo.updateTimersInterval);
     delete games[gameId];
     connections = connections - 2;
@@ -368,11 +403,18 @@ async function handleClientMessage(socket) {
 }
 
 server.on('connection', (socket, req) => {
-  readSpectatorIds();
-  const isSpectator = false;
-  const ip = req.socket.remoteAddress;
-  console.log('[DATA] New connection from:', ip);
-  console.log('[DATA] Number of Connections:', connections + 1);
-  console.log('[DATA] Number of Games:', Object.keys(games).length);
-  handleClientMessage(socket, isSpectator);
+  const clientIP = req.socket.remoteAddress;
+  console.log('---------------------------------------------------------------------------');
+  console.log('[CONNECTION] New connection from:', clientIP);
+  console.log('[CONNECTION] Number of Connections:', connections + 1);
+  console.log('[CONNECTION] Number of Games:', Object.keys(games).length);
+
+  socket.on('message', (data) => {
+    const message = JSON.parse(data);
+    switch (message.type) {
+      case 'initialConnection':
+        handleClientMessage(socket, message.gType, message.gKey, message.playerName);
+        break;
+    }
+  });
 });

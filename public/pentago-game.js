@@ -10,10 +10,15 @@ https://github.com/basedryo/pentago.net
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago.herokuapp.com/'
+const IP = '192.168.56.1'; //pentago.herokuapp.com/
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
+console.log('[DATA] Player name: ', playername);
+const gType = localStorage.getItem("gType");
+console.log('[DATA] Game type (0: public, 1: private): ', gType);
+const gKey = localStorage.getItem("gKey");
+console.log("[DATA] Game R-Key: ", gKey);
 
 function truncate(str, length) {
   if (str.length > length) {
@@ -160,11 +165,17 @@ class GameScene extends Phaser.Scene {
   connect() {
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
+    const initialConnectionMessage = {
+      type: 'initialConnection',
+      playerName: playername,
+      gType: gType,
+      gKey: gKey,
+    };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago.herokuapp.com/');
+    this.socket = new WebSocket('ws://192.168.1.56:5000'); //wss://pentago.herokuapp.com/
     this.socket.addEventListener('open', (event) => {
-      this.socket.send(JSON.stringify({ type: 'name', name: playername}));
+      this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
     });
 
@@ -234,6 +245,13 @@ class GameScene extends Phaser.Scene {
             }, 500);
           }
         });
+      }
+
+      if (data.type === 'error') {
+        alert('Invalid room number, you are being redirected to the homepage...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 500);
       }
 
     //console.log(this.move_log);
@@ -737,6 +755,11 @@ class GameScene extends Phaser.Scene {
         tempInput.select();
         document.execCommand("copy");
         document.body.removeChild(tempInput);
+        this.cp_warning = this.add.text(310, 460, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
+        var cp_delay = 1000;
+        this.time.delayedCall(cp_delay, function() {
+            this.cp_warning.destroy();
+        }, [], this);
       }
 
       if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {

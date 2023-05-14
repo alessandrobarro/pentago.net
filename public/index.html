@@ -68,9 +68,80 @@ https://github.com/basedryo/pentago.net
       <div class="container">
         <img src="data/assets/img/title.PNG" class="title" id="title"/>
         <br>
-        <input type="text" class="playername" id="playername" name="Name" placeholder="Enter your nickname">
-        <br>
-        <a href="pentago-gamepage.html" target="_blank"><img src="data/assets/img/play_button.PNG" class="playbtn" id="playbtn" onclick="setNickname()"/></a>
+        <div class="settings" id="settings">
+          <div class="pop" id="pop">
+            <input type="text" class="playername" id="playername" name="Name" placeholder="Enter your nickname" maxlength="12" required>
+            <img class="buttonImage" id="buttonImage" src="data/assets/img/public_game.PNG" alt="Image 1" onclick="toggleImage()">
+            <br>
+            <br>
+            <div class="private-game-popup" id="private-game-popup">
+              <div class="private-game-popup-content">
+                <form id="g-form" class="g-form" onsubmit="event.preventDefault(); join_private_game();">
+                  <input class="formg" id="formg" type="text" placeholder="Room number" maxlength="6" required>
+                  <button type="submit" id="g-button" class="g-button" onclick="join_private_game();">Join game</button>
+                </form>                
+                  <br>
+                  <a href="pentago-gamepage.html" target="_blank"><button id="c-button" class="c-button" onclick="setNickname(); create_private_game();">Create a custom game</button></a>
+                  <br>
+                  <span class="close" id="close" onclick="closePrivateGamePopup()">&times;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="playbtn" id="playbtn" style="background-image: url('data/assets/img/play_button.PNG');"></button>
+        <script>
+          let imageState = 1;
+          var gType = '0';
+          console.log("[DATA] Default gamemode is set to public: ", gType);
+          function toggleImage() {
+            const buttonImage = document.getElementById('buttonImage');
+            if (imageState === 1) {
+              buttonImage.src = 'data/assets/img/private_game.PNG';
+              buttonImage.alt = 'Image 2';
+              imageState = 2;
+              gType = '1';
+              console.log("[DATA] Gamemode changed to private: ", gType);
+            } else {
+              buttonImage.src = 'data/assets/img/public_game.PNG';
+              buttonImage.alt = 'Image 1';
+              imageState = 1;
+              gType = '0';
+              console.log("[DATA] Gamemode changed to public: ", gType);
+            }
+            mode();
+          }
+          function mode() {
+            document.getElementById('playbtn').addEventListener('click', function (event) {
+              setNickname();
+              if (!nickname || nickname === '') {
+                event.preventDefault();
+                alert('Please enter a valid nickname.');
+                return;
+              }
+              if (gType === '0') {
+                play_public_game();
+                window.open("pentago-gamepage.html", "_blank");
+              } else if (gType === '1') {
+                openPrivateGamePopup();
+                event.preventDefault();
+              }
+            });
+          }
+          mode();
+        </script>
+        <script>
+          function openPrivateGamePopup() {
+            event.preventDefault();
+            var popup = document.getElementById("private-game-popup");
+            popup.style.display = "block";
+            popup.style.position = "absolute";
+          }
+          function closePrivateGamePopup() {
+            event.preventDefault();
+            var popup = document.getElementById("private-game-popup");
+            popup.style.display = "none";
+          }
+        </script>
         <br>
         <center>
         <a><img src="data/assets/img/scroll_html.png" class="scrollbtn" id="scrollbtn" width="44" height="40" style="text-align: center; justify-content: center; align-items: center;" onclick="scrolldown()"/></a>
@@ -110,7 +181,7 @@ https://github.com/basedryo/pentago.net
       </div>
     </div>
   </body>
-  <script src="/playername.js"></script>
+  <script src="game-settings.js"></script>
   <script type="text/javascript">
     window.onload = function() {
       const name = document.getElementById('subscribe_name');
