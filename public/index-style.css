@@ -129,6 +129,7 @@ body {
         padding: 20px 20px;
         width: 80%;
         max-width: 400px;
+        vertial-align: middle;
 }
 .close {
         margin-top: 10px;
