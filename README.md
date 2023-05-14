@@ -19,9 +19,10 @@ and WebSockets to handle connections both client and server side.
 - version 0.5: Pentago's debut on the WWW, script conversion to JS and HTML
 - version 0.7 closed-alpha (RELEASED): The very first game-launch, addressed to testing, bug hunting and fixing
 - version 0.7.1 closed-alpha (RELEASED) Partial mobile support (g-win auto-rescaling),  responsive HTMLs, website and GUI re-designment
-- version 0.8.9 closed-beta (CURRENT): bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support,
-- version 0.9 open-beta (NOT RELEASED): bug fixing, private games, control rework, game optimization, DNS, mobile development,
+- version 0.8.9 closed-beta (RELEASED): private games implementation, bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support
+- version 0.9 closed-beta (CURRENT): bug fixing, private games, control rework, game optimization, DNS, mobile development,
   DB implementation, and more
+- version 0.9.1 open-beta (NOT RELEASED): bug fixing, minor adjustments, open to public users
 
 # Credits
 - Full credits to Mindtwister, the company responsible for the publishment of the board-game, and the invention of it itself
