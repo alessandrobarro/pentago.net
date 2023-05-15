@@ -90,45 +90,42 @@ https://github.com/basedryo/pentago.net
         </div>
         <button class="playbtn" id="playbtn" style="background-image: url('data/assets/img/play_button.PNG');"></button>
         <script>
-          let imageState = 1;
-          var gType = '0';
-          console.log("[DATA] Default gamemode is set to public: ", gType);
-          function toggleImage() {
-            const buttonImage = document.getElementById('buttonImage');
-            if (imageState === 1) {
-              buttonImage.src = 'data/assets/img/private_game.PNG';
-              buttonImage.alt = 'Image 2';
-              imageState = 2;
-              gType = '1';
-              console.log("[DATA] Gamemode changed to private: ", gType);
-            } else {
-              buttonImage.src = 'data/assets/img/public_game.PNG';
-              buttonImage.alt = 'Image 1';
-              imageState = 1;
-              gType = '0';
-              console.log("[DATA] Gamemode changed to public: ", gType);
-            }
-            mode();
-          }
-          function mode() {
-            document.getElementById('playbtn').addEventListener('click', function (event) {
-              setNickname();
-              if (!nickname || nickname === '') {
-                event.preventDefault();
-                alert('Please enter a valid nickname.');
-                return;
-              }
-              if (gType === '0') {
-                play_public_game();
-                window.open("pentago-gamepage.html", "_blank");
-              } else if (gType === '1') {
-                openPrivateGamePopup();
-                event.preventDefault();
-              }
-            });
-          }
-          mode();
-        </script>
+             let imageState = 1;
+             var gType = '0';
+             console.log("[DATA] Default gamemode is set to public: ", gType);
+             function toggleImage() {
+               const buttonImage = document.getElementById('buttonImage');
+               if (imageState === 1) {
+                 buttonImage.src = 'data/assets/img/private_game.PNG';
+                 buttonImage.alt = 'Image 2';
+                 imageState = 2;
+                 gType = '1';
+                 console.log("[DATA] Gamemode changed to private: ", gType);
+               } else {
+                 buttonImage.src = 'data/assets/img/public_game.PNG';
+                 buttonImage.alt = 'Image 1';
+                 imageState = 1;
+                 gType = '0';
+                 console.log("[DATA] Gamemode changed to public: ", gType);
+               }
+             }
+
+             document.getElementById('playbtn').addEventListener('click', function (event) {
+               setNickname();
+               if (!nickname || nickname === '') {
+                 event.preventDefault();
+                 alert('Please enter a valid nickname.');
+                 return;
+               }
+               if (gType === '0') {
+                 play_public_game();
+                 window.open("pentago-gamepage.html", "_blank");
+               } else if (gType === '1') {
+                 openPrivateGamePopup();
+                 event.preventDefault();
+               }
+             });
+           </script>
         <script>
           function openPrivateGamePopup() {
             event.preventDefault();
