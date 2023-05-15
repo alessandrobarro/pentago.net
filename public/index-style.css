@@ -288,7 +288,6 @@ body {
 @media screen and (max-width: 600px) {
         img.scrollbtn {
                 display: none;
-                visibility: hidden;
         }
 }    
 @media screen and (min-width: 601px) {
