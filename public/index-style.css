@@ -160,7 +160,7 @@ body {
         text-align: center;
         white-space: nowrap;
 }
-input[type=g-submit]:hover {
+.g-button:hover {
         opacity: 0.8;
 }
 .c-button {
