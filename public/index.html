@@ -46,18 +46,21 @@ https://github.com/basedryo/pentago.net
     <!-- MAIN PAGE MENU & TOOLBAR -->
     <section class="toolbar" id="toolbar">
       <div class="menu" id="menu">
+        <div class="home" id="home">
+          <a href="index.html" title="Homepage"><img src="data/assets/img/home.png" width="35px" height="35px"></a>
+        </div>
         <div class="tutorial" id="tutorial">
-          <div class="tu-popup" onclick="showTuPopup()">
+          <div class="tu-popup" onclick="showTuPopup()" title="Quick Tutorial">
             <img src="data/assets/img/webinar.png" width="35px" height="35px">
             <span class="tu-popuptext" id="tu-myPopup">
               <img src="data/assets/img/tutorial.gif" height="150px" widht="150px">
             </span>
           </div>
         </div>
-        <div class="info" id="info">
-          <a href="javascript:void(0);" onClick=window.open("coming-soon.html","Ratting","width=550,height=720,left=1,top=102,toolbar=0,status=0,");><img src="data/assets/img/info.png" class="infoicon" id="infoicon" width="35px" height="35px"></a>
+        <div class="info" id="info" title="Game Info">
+          <a href="info.html"><img src="data/assets/img/info.png" class="infoicon" id="infoicon" width="35px" height="35px"></a>
         </div>
-        <div class="mail" id="mail">
+        <div class="mail" id="mail" title="Contact Us">
           <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support"><img src="data/assets/img/mail.png" class="mail" id="mail" width="35px" height="35px"></a>
         </div>
       </div>
@@ -71,7 +74,7 @@ https://github.com/basedryo/pentago.net
         <div class="settings" id="settings">
           <div class="pop" id="pop">
             <input type="text" class="playername" id="playername" name="Name" placeholder="Enter your nickname" maxlength="12" required>
-            <img class="buttonImage" id="buttonImage" src="data/assets/img/public_game.PNG" alt="Image 1" onclick="toggleImage()">
+            <img class="buttonImage" id="buttonImage" src="data/assets/img/public_game.PNG" alt="Image 1" onclick="toggleImage()" title="Gamemode: Public">
             <br>
             <br>
             <div class="private-game-popup" id="private-game-popup">
@@ -98,12 +101,14 @@ https://github.com/basedryo/pentago.net
                if (imageState === 1) {
                  buttonImage.src = 'data/assets/img/private_game.PNG';
                  buttonImage.alt = 'Image 2';
+                 buttonImage.title = "Gamemode: Private";
                  imageState = 2;
                  gType = '1';
                  console.log("[DATA] Gamemode changed to private: ", gType);
                } else {
                  buttonImage.src = 'data/assets/img/public_game.PNG';
                  buttonImage.alt = 'Image 1';
+                 buttonImage.title = "Gamemode: Public";
                  imageState = 1;
                  gType = '0';
                  console.log("[DATA] Gamemode changed to public: ", gType);

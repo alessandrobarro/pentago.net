@@ -66,6 +66,13 @@ body {
               justify-content: right;
         }
 }
+.home {
+        text-align: right;
+        margin-top: 1.5%;
+        margin-left: 1.5%;
+        display: inline-block;
+        -webkit-animation:slide-in-blurred-top 1.8s;animation:slide-in-blurred-top 1.8s;
+}
 .tutorial {
         text-align: right;
         margin-top: 1.5%;
@@ -288,6 +295,7 @@ body {
 @media screen and (max-width: 600px) {
         img.scrollbtn {
                 display: none;
+                visibility: hidden;
         }
 }    
 @media screen and (min-width: 601px) {
