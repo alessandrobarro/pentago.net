@@ -10,7 +10,7 @@ https://github.com/basedryo/pentago.net
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-97ff3a2a2f98.herokuapp.com//';
+const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
