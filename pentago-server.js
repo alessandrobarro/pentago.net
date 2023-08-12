@@ -11,12 +11,122 @@ import { createRequire } from 'module';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import pkg from 'pg';
+
+
+/* SQL */
+/* -------------------------------------------------------------------------------------- */
+
+
+const { Client } = pkg;
+
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+//client.connect();
+
+// INSERT a new user
+async function insertUser(username) {
+  try {
+      const res = await client.query(
+          `INSERT INTO users (username) VALUES ($1) RETURNING user_id;`,
+          [username]
+      );
+      return res.rows[0].user_id; // Return the created user_id
+  } catch (err) {
+      console.error("Error inserting user:", err);
+  }
+}
+
+// FETCH a user by username
+async function getUserByUsername(username) {
+  try {
+      const res = await client.query(
+          `SELECT * FROM users WHERE username = $1;`,
+          [username]
+      );
+      return res.rows[0]; // Return the user details
+  } catch (err) {
+      console.error("Error getting user by username:", err);
+  }
+}
+
+// INSERT a new match
+async function insertMatch(player1_id, player2_id, result, start_time, end_time = null) {
+  try {
+      const res = await client.query(
+          `INSERT INTO matches (player1_id, player2_id, result, start_time, end_time) 
+           VALUES ($1, $2, $3, $4, $5) RETURNING match_id;`,
+          [player1_id, player2_id, result, start_time, end_time]
+      );
+      return res.rows[0].match_id; // Return the created match_id
+  } catch (err) {
+      console.error("Error inserting match:", err);
+  }
+}
+
+async function updateUserStats(user_id, games_won, games_played) {
+  try {
+      await client.query(
+          `UPDATE users SET games_won = games_won + $2, games_played = games_played + $3 WHERE user_id = $1;`,
+          [user_id, games_won, games_played]
+      );
+  } catch (err) {
+      console.error("Error updating user stats:", err);
+  }
+}
+
+// UPDATE match results
+async function updateMatchResult(match_id, result) {
+  try {
+      await client.query(
+          `UPDATE matches SET result = $2 WHERE match_id = $1;`,
+          [match_id, result]
+      );
+  } catch (err) {
+      console.error("Error updating match result:", err);
+  }
+}
+
+// FETCH matches for a particular user
+async function fetchMatchesForUser(user_id) {
+  try {
+      const res = await client.query(
+          `SELECT * FROM matches WHERE player1_id = $1 OR player2_id = $1;`,
+          [user_id]
+      );
+      return res.rows;
+  } catch (err) {
+      console.error("Error fetching matches for user:", err);
+  }
+}
+
+// FETCH user stats (games won, games played, win percentage)
+async function fetchUserStats(user_id) {
+  try {
+      const res = await client.query(
+          `SELECT games_won, games_played, 
+          (CASE WHEN games_played = 0 THEN 0 ELSE ROUND((games_won::decimal / games_played::decimal) * 100, 2) END) AS win_percentage 
+          FROM users WHERE user_id = $1;`,
+          [user_id]
+      );
+      return res.rows[0];
+  } catch (err) {
+      console.error("Error fetching user stats:", err);
+  }
+}
+
+/* -------------------------------------------------------------------------------------- */
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PORT = process.env.PORT || 5000;
-const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
+const PORT = 443;
+const IP = '10.0.0.209';
 const URL = 'wss://' + IP + ':' + '443';
 const express = require('express');
 const app = express()
