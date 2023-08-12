@@ -944,7 +944,7 @@ class GameScene extends Phaser.Scene {
   }    
 }
 
-// Web window embedding setup
+/*---------------------------------------Web embedding setup---------------------------------------*/
 const config = {
   width: 1366,
   height: 768,
