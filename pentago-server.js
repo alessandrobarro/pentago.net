@@ -6,526 +6,957 @@
 https://github.com/basedryo/pentago.net
 */
 
-import Board from './public/game-board.js';
-import { createRequire } from 'module';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-//import pkg from 'pg';
+/*----------------------------------------------Modules----------------------------------------------*/
+import Board from './game-board.js';
 
-
-/* SQL */
-/* -------------------------------------------------------------------------------------- */
-
-/*
-const { Client } = pkg;
-
-const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
-client.connect();
-*/
-
-// INSERT a new user
-async function insertUser(username) {
-  try {
-      const res = await client.query(
-          `INSERT INTO users (username) VALUES ($1) RETURNING user_id;`,
-          [username]
-      );
-      return res.rows[0].user_id; // Return the created user_id
-  } catch (err) {
-      console.error("Error inserting user:", err);
-  }
-}
-
-// FETCH a user by username
-async function getUserByUsername(username) {
-  try {
-      const res = await client.query(
-          `SELECT * FROM users WHERE username = $1;`,
-          [username]
-      );
-      return res.rows[0]; // Return the user details
-  } catch (err) {
-      console.error("Error getting user by username:", err);
-  }
-}
-
-// INSERT a new match
-async function insertMatch(player1_id, player2_id, result, start_time, end_time = null) {
-  try {
-      const res = await client.query(
-          `INSERT INTO matches (player1_id, player2_id, result, start_time, end_time) 
-           VALUES ($1, $2, $3, $4, $5) RETURNING match_id;`,
-          [player1_id, player2_id, result, start_time, end_time]
-      );
-      return res.rows[0].match_id; // Return the created match_id
-  } catch (err) {
-      console.error("Error inserting match:", err);
-  }
-}
-
-async function updateUserStats(user_id, games_won, games_played) {
-  try {
-      await client.query(
-          `UPDATE users SET games_won = games_won + $2, games_played = games_played + $3 WHERE user_id = $1;`,
-          [user_id, games_won, games_played]
-      );
-  } catch (err) {
-      console.error("Error updating user stats:", err);
-  }
-}
-
-// UPDATE match results
-async function updateMatchResult(match_id, result) {
-  try {
-      await client.query(
-          `UPDATE matches SET result = $2 WHERE match_id = $1;`,
-          [match_id, result]
-      );
-  } catch (err) {
-      console.error("Error updating match result:", err);
-  }
-}
-
-// FETCH matches for a particular user
-async function fetchMatchesForUser(user_id) {
-  try {
-      const res = await client.query(
-          `SELECT * FROM matches WHERE player1_id = $1 OR player2_id = $1;`,
-          [user_id]
-      );
-      return res.rows;
-  } catch (err) {
-      console.error("Error fetching matches for user:", err);
-  }
-}
-
-// FETCH user stats (games won, games played, win percentage)
-async function fetchUserStats(user_id) {
-  try {
-      const res = await client.query(
-          `SELECT games_won, games_played, 
-          (CASE WHEN games_played = 0 THEN 0 ELSE ROUND((games_won::decimal / games_played::decimal) * 100, 2) END) AS win_percentage 
-          FROM users WHERE user_id = $1;`,
-          [user_id]
-      );
-      return res.rows[0];
-  } catch (err) {
-      console.error("Error fetching user stats:", err);
-  }
-}
-
-/* -------------------------------------------------------------------------------------- */
-
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PORT = process.env.PORT || 5000;
+/*----------------------------------------Game init settings-----------------------------------------*/
+var HOST = location.origin.replace(/^http/, 'ws')
 const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
-const URL = 'wss://' + IP + ':' + PORT;
-const express = require('express');
-const app = express()
-const http_server = require('http').createServer(app);
-const WebSocket = require('ws');
-const server = new WebSocket.Server({ server: http_server });
+console.log('[DATA] Host: ', HOST);
+var el;
+const playername = localStorage.getItem("nickname");
+console.log('[DATA] Player name: ', playername);
+const gType = localStorage.getItem("gType");
+console.log('[DATA] Game type (0: public, 1: private): ', gType);
+const gKey = localStorage.getItem("gKey");
+console.log("[DATA] Game R-Key: ", gKey);
 
-// Web-socket server setup
-app.use(express.static('public'));
-app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html'); });
-http_server.listen(PORT, () => console.log('[START] Listening...'));
-console.log('[START] Waiting for a connection');
-const games = {};
-const loopbackKey = '000000';
-let connections = 0;
+/*------------------------------------------Helper functions-----------------------------------------*/
 
-function generateSerialKey(){
-  let characters = "0123456789abcdef"
-  let random_game_key = ""
-  for(let i = 0; i < 6; i++){
-      random_game_key += characters[Math.floor(Math.random() * 16)]
-  }
-
-  return random_game_key;
+function truncate(str, length) {
+  /* Truncates the player name */
+  if (str.length > length) {
+    return str.slice(0, length) + '...';
+  } else return str;
 }
 
-function readSpectatorIds() {
-  //pass
+async function captureGameBoard(scene, x, y, width, height) {
+  /* Takes the screenshot of the game with html2canvas implicitly imported */
+  return new Promise((resolve) => {
+    scene.game.renderer.snapshot((image) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, x, y, width, height, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    });
+  });
 }
 
-function isGameKeyValid(gameKey) {
-  for (const game in games) {
-    if (games[game].key === gameKey && !games[game].ready) {
-      return true;
+function matricesEqual(matrix1, matrix2) {
+  /* Calculates the equality of two given matrices */
+  if (matrix1.length !== matrix2.length || matrix1[0].length !== matrix2[0].length) {
+    return false; // Matrices are not the same size
+  }
+  for (let i = 0; i < matrix1.length; i++) {
+    for (let j = 0; j < matrix1[0].length; j++) {
+      if (matrix1[i][j] !== matrix2[i][j]) {
+        return false; // Element mismatch
+      }
     }
   }
-  return false;
+  return true; // Matrices are equal
 }
 
-
-async function handleClientMessage(socket, gType, requestedKey, name) {
-  let gameId = -1;
-  const playerName = name;
-  const INDEX = fs.readFileSync('./public/index.html', 'utf-8'); 
-
-  if (!requestedKey) {
-    requestedKey = 'PUBLIC';
+/*-----------------------------------------Main Game class----------------------------------------*/
+class GameScene extends Phaser.Scene {
+  constructor() {
+    super("gameScene");
+    this.ready = false;
+    this.gameStateUpdated = false;
+    this.game_state_received = false;
+    this.timersStarted = false;
   }
 
-  // Finds an existing game with an open slot or create a new one
-  let foundGame = false;
-  for (const game in games) {
-    if (!games[game].ready) {
-      if (!games[game].private && gType === '0' && requestedKey === 'PUBLIC') {
-        gameId = game;
-        foundGame = true;
-        break;
-      } else if (games[game].private && gType === '1' && requestedKey === games[game].key) {
-        gameId = game;
-        foundGame = true;
-        break;
-      }
+  formatTime(seconds) {
+    /* Run a real time timer */
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+  }
+
+  updateDisplayedTimers(timers, color) {
+    /* Update the displayer timers */
+    let timerValue1 = timers[0] < 0 ? 0 : timers[0];
+    let timerValue2 = timers[1] < 0 ? 0 : timers[1];
+    const formattedTime1 = this.formatTime(timerValue1);
+    const formattedTime2 = this.formatTime(timerValue2);
+    if (color === '0') {
+      this.timerText1.setText(`${formattedTime1}`);
+    }
+    else if (color === '1'){
+      this.timerText2.setText(`${formattedTime2}`);
     }
   }
 
-  // Creates a new game if no existing game found
-  if (!foundGame) {
-    if (gType === '0' || (gType === '1' && requestedKey === loopbackKey)) {
-      gameId = Object.keys(games).length;
-      games[gameId] = new Board(); // Initializes a game
-      games[gameId].sockets = {}; // Initializes sockets property
-      games[gameId].clients = []; // Initializes clients property
-      games[gameId].colors = {}; // Initializes colors property
-      games[gameId].colors['0'] = '0'; // Assigns color '0' to player '0'
-      games[gameId].colors['1'] = '1'; // Assigns color '1' to player '1'
-      games[gameId].timers = { '0': 600, '1': 600 }; // Initializes timers
-      games[gameId].key = generateSerialKey();
-      games[gameId].private = gType === '1' ? true : false;
-    } else {
-      socket.send(JSON.stringify({ type: 'error', message: 'Invalid game type or requested key' }));
-      console.log("[ERROR]" + playerName + "joined an inexistent room, redirecting to index.html...");
-      return;
-    }
-  }
+  redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
+    /* Refreshes the game window [NEEDS CHECK] */
+    scene.cameras.main.setBackgroundColor('#232323');
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
 
-  // Assigns the client to the game
-  const bo = games[gameId];
-  let currentId;
-  if (bo.clients.length === 0) {
-    currentId = '0';
-    bo.clients.push('0');
-    bo.sockets[currentId] = socket;
-    bo.colors = { '0': '0' };
-    console.log("[DATA] Game S-key: ", bo.key);
-  } else {
-    currentId = '1';
-    bo.clients.push('1');
-    bo.sockets[currentId] = socket;
-    bo.colors['1'] = '1';
-    bo.ready = true;
-    bo.startTime = Date.now();
-    console.log('[DATA] Starting time: ', bo.startTime);
-  }
-
-  if (bo.ready && !bo.updateTimersInterval) {
-    bo.updateTimersInterval = setInterval(() => {
-      updateTimers(gameId);
-      sendGameState(gameId);
-    }, 1000);
-  }
-
-  if (currentId === '0') {
-    bo.p1Name = playerName;
-  } else if (currentId === '1') {
-    bo.p2Name = playerName;
-  }
-
-  console.log(`[DATA] Game ID: ${gameId}`);
-  console.log('[DATA] Game type (0: public, 1: private): ', gType);
-  console.log('[DATA] Game R-key: ',requestedKey);
-  console.log('[DATA] Player name: ', name);
-  console.log('---------------------------------------------------------------------------');
-
-  function sendGameState(gameId, skipTimers = false) {
-    const bo = games[gameId];
-    if (!bo) return;
-    if (!skipTimers) {
-      for (const clientId of bo.clients) {
-        const clientSocket = bo.sockets[clientId];
-        clientSocket.send(JSON.stringify({ type: 'updateTimers', timers: bo.timers }));
-      }
-    }
-    for (const clientId of bo.clients) {
-      const clientSocket = bo.sockets[clientId];
-      clientSocket.send(JSON.stringify({ type: 'updateTimers', timers: bo.timers }));
-      if (!clientSocket) {
-        //console.log(`No socket found for clientId: ${clientId}`);
-        continue;
-      }
-      const gameState = JSON.stringify(getBoData(bo, clientId));
-      //console.log(`Sending gameState to clientId: ${clientId}:`, gameState);
-      clientSocket.send(gameState);
-    }
-    if (bo.winner !== '-1') {
-      const winHTML = fs.readFileSync('./public/pentago-win.html', 'utf-8');
-      const loseHTML = fs.readFileSync('./public/pentago-lose.html', 'utf-8');
-      const tieHTML = fs.readFileSync('./public/pentago-tie.html', 'utf-8'); 
-      if (bo.winner === '0' || bo.winner === '1') {
-        bo.sockets['0'].send(JSON.stringify({ type: 'end', result: bo.winner === '0' ? 'win' : 'lose', html: bo.winner === '0' ? winHTML : loseHTML }));
-        bo.sockets['1'].send(JSON.stringify({ type: 'end', result: bo.winner === '1' ? 'win' : 'lose', html: bo.winner === '1' ? winHTML : loseHTML }));
-      } else {
-        bo.sockets['0'].send(JSON.stringify({ type: 'end', result: bo.winner === '2' ? 'tie' : 'tie', html: bo.winner === '2' ? tieHTML : tieHTML}));
-        bo.sockets['1'].send(JSON.stringify({ type: 'end', result: bo.winner === '2' ? 'tie' : 'tie', html: bo.winner === '2' ? tieHTML : tieHTML}));
-      }
-      delete games[gameId];
-    }
-  }
-  
-  if (currentId === '1') {
-    sendGameState(gameId);
-    sendReadyMessage();
-  } else {
-    sendReadyMessage();
-  }
-
-  // Initializes bo.connections for the first client or add the second client to the existing array
-  if (!bo.clients) {
-    bo.clients = [currentId];
-  } else {
-    bo.clients.push(currentId);
-  }
-
-  function updateTimers(gameId) {
-    const bo = games[gameId];
-    if (!bo || !bo.ready) return;
-    const elapsedTime = 1;
-    const currentPlayer = bo.turn;
-    const otherPlayer = currentPlayer === '0' ? '1' : '0';
-    if (bo.timers[currentPlayer] > 0) {
-      bo.timers[currentPlayer] = Math.max(bo.timers[currentPlayer] - elapsedTime, 0); // Prevent negative values
-    } else {
-      bo.winner = otherPlayer;
-    }
-    bo.startTime = Date.now();
-  }
-
-  // Extracts the necessary data from the board object
-  function getBoData(bo, clientId) {
-    //console.log(clientId)
-    return {
-      timers: bo.timers,
-      key: bo.key,
-      type: 'gameState',
-      board: bo.config,
-      color: bo.colors[clientId],
-      last: bo.last,
-      turn: bo.turn,
-      ready: bo.ready,
-      winner: bo.winner,
-      startUser: bo.startUser,
-      time1: bo.time1,
-      time2: bo.time2,
-      p1Name: bo.p1Name,
-      p2Name: bo.p2Name,
-      log: bo.log
+    /* GUI */
+    const textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 30,
+      color: '#FFFFFF'
     };
+
+    const textStyle2 = {
+      fontFamily: 'Arial',
+      fontSize: 50,
+      color: '#FFFFFF'
+    };
+
+    const textStyle3 = {
+      fontFamily: 'Arial',
+      fontSize: 18,
+      color: '#FFFFFF'
+    };
+
+    const textStyle4 = {
+      fontFamily: 'Arial',
+      fontSize: 23,
+      color: '#FFFFFF'
+    };
+
+    const textStyle5 = {
+      fontFamily: 'Arial',
+      fontSize: 20,
+      color: '#FFFFFF'
+    };
+
+    if (bo.turn === '0') {
+      scene.time_label = this.add.image(308, 130, 'white_label')
+    }
+    else if (bo.turn === '1') {
+      scene.time_label = this.add.image(308, 130, 'black_label')
+    }
+
+    /*
+    COMING SOON - MOVE LOG
+    if (ready) {
+      scene.log_text = scene.add.text(1080, 350, scene.move_log, textStyle5);
+      //console.log(scene.move_log);
+    }
+    */
+
+    if (!has_placed && bo.turn === color && ready) {
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(705, 20, 'Click on the board to place a marble', textStyle3);
+    }
+    else if (has_placed && !has_selected_q && bo.turn === color && ready) {
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(650, 20, 'Click on the board to select a quadrant and rotate it', textStyle3);
+    }
+    else if (!has_placed && bo.turn !== color || !ready) {
+      scene.add.image(850, 30, 'message');
+      const has_placed_text = scene.add.text(766, 20, 'Waiting for player', textStyle3);
+    }
+  }
+
+  draw_marble() {
+    /* Draw new marbles on the board */
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
+
+    for (let l = 0; l < 6; l++) {
+      for (let m = 0; m < 6; m++) {
+        if (this.bo.config[l][m] === '0') {
+          if (l === 1 || l === 4) {
+            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
+          } else {
+            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
+          }
+        } else if (this.bo.config[l][m] === '1') {
+          if (l === 1 || l === 4) {
+            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
+          } else {
+            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
+          }
+        }
+      }
+    }
+    //console.log(`[DEBUG] Marble list: `, this.marbles);
+  }
+
+  clear_marble() {
+    /* Clears the mismatching marbles' drawings from the board */
+
+    //console.log('[DEBUG] Clearing marbles. Current marbles array:', this.marbles);
+    //console.log('[DEBUG] Current board configuration:', this.bo.config);
+
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
+  
+    this.marbles = this.marbles.filter(([marbleImage, coords, player]) => {
+      for (let l = 0; l < 6; l++) {
+        for (let m = 0; m < 6; m++) {
+          const coord = (l === 1 || l === 4) ?
+            [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l] :
+            [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l];
+          
+          /* Handle case where there is a marble of any color on a '-1' tile */
+          if (coords[0] === coord[0] && coords[1] === coord[1] && this.bo.config[l][m] === '-1') {
+            marbleImage.destroy();
+            console.log('Destroyed: ', marbleImage);
+            return false; // Remove the marble from the array
+          }
+
+          /* Handle case where the marble and the respective tile are mismatching */
+          else if (coords[0] === coord[0] && coords[1] === coord[1] && player != this.bo.config[l][m]) {
+            marbleImage.destroy();
+            console.log('Destroyed: ', marbleImage);
+            return false; // Remove the marble from the array
+          }
+        }
+      }
+      return true; // Keep the marble in the array
+    });
   }
   
-  socket.send(JSON.stringify(getBoData(bo, currentId)));
-  connections++;
+  connect() {
+    /* Implement client-side connection and data handling */
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
+    const initialConnectionMessage = {
+      type: 'initialConnection',
+      playerName: playername,
+      gType: gType,
+      gKey: gKey,
+    };
+    let flag = 0;
+    let count = 0;
+    this.socket = new WebSocket('wss://pentago-b25ac50cd7d5.herokuapp.com/');
+    this.socket.addEventListener('open', (event) => {
+      this.socket.send(JSON.stringify(initialConnectionMessage));
+      console.log('Connected to the server');
+    });
 
-  function sendReadyMessage() {
-    const readyMessage = JSON.stringify({ type: 'ready' });
-    for (const clientId of bo.clients) {
-      const clientSocket = bo.sockets[clientId];
-      clientSocket.send(readyMessage);
-    }
-  }
+    this.socket.addEventListener('close', (event) => {
+      console.log('Disconnected from the server');
+    });
 
-  socket.on('message', async (data) => {
-    if (!(gameId in games)) {
-      return;
-    }
-    try {
-      const msg = data.toString();
-      //console.log('data is being received: ', msg);
-      if (!msg) {
-        return;
+    this.socket.addEventListener('error', (event) => {
+      console.log('Error:', event);
+    });
+
+    this.socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+    
+      // If both players are ready, start the timers
+      if (data.type === 'gameState') {
+        if (data.ready && !this.timersStarted) {
+          this.timersStarted = true;
+          if (data.type === 'updateTimers') {
+            const timers = data.timers;
+            this.updateDisplayedTimers(timers, this.color);
+          }
+        }
+      }
+
+      const textStyle4 = {
+        fontFamily: 'Arial',
+        fontSize: 23,
+        color: '#FFFFFF'
+      };
+
+      if (data.type === 'gameState' && flag <= 1) { //looping problem [NEEDS CHECK]
+        let serial = 'Room number #';
+        if (data.key !== undefined) {
+          serial += data.key;
+        } else {
+          serial += '';
+        }
+        if (count < 1){
+          this.add.text(270, 490, serial, textStyle4);
+          count++;
+        }
+        if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
+          this.add.text(270, 537, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
+          this.add.text(270, 577, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
+          serial = '';
+          flag++;
+        }
+      }
+  
+      // Handles the data if the game ends and takes the screenshot of the current game-board
+      if (data.type === 'end') {
+        captureGameBoard(this, offset_x - 284, offset_y - 284, 580, 580).then(gameBoardScreenshot => {
+          sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
+      
+          if (data.result === 'win') {
+            setTimeout(() => {
+              window.location.href = 'pentago-win.html';
+            }, 500); // Delay
+          } else if (data.result === 'lose') {
+            setTimeout(() => {
+              window.location.href = 'pentago-lose.html';
+            }, 500);
+          } else if (data.result === 'tie') {
+            setTimeout(() => {
+              window.location.href = 'pentago-tie.html';
+            }, 500);
+          }
+        });
+      }
+
+      if (data.type === 'error') {
+        alert('Invalid room number, you are being redirected to the homepage...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 500);
+      }
+
+    //console.log('[DEBUG] Data received from server:', data);
+  
+    // Updates the client game-state
+    if (data.type === 'gameState') {
+      this.game_state_received = true;
+      this.gameStateUpdated = true;
+      this.bo.timers = data.timers;
+      this.bo.ready = data.ready
+      this.bo.turn = data.turn;
+      this.bo.time1 = data.time1;
+      this.bo.time2 = data.time2;
+      this.bo.p1Name = data.p1Name;
+      this.bo.p2Name = data.p2Name;
+      this.color = data.color;
+      this.key = data.key;
+      this.move_log = data.log;
+  
+      if (data.ready !== undefined) { // Check if the ready status is available in the gameState message
+        this.ready = data.ready;
+      }
+
+      if (matricesEqual(this.bo.config, data.board)) {
+        console.log('[GAME] Board configuration did not change. Not clearing marbles.');
       } else {
-        const parsedMsg = JSON.parse(msg);
-        if (parsedMsg.type === 'gameBoardScreenshot') {
-          const screenshot = parsedMsg.screenshot;
-          bo.sockets['0'].send(JSON.stringify({ type: 'gameBoardScreenshot', screenshot }));
-          bo.sockets['1'].send(JSON.stringify({ type: 'gameBoardScreenshot', screenshot }));
-        }
-        if (parsedMsg.type === 'select') {
-          const { i: row, j: col, color } = parsedMsg;
-          if (bo.config[col][row] === '-1') {
-              bo.move(parseInt(col), parseInt(row), color)
-              bo.last = { row: parseInt(col), col: parseInt(row) };
-          }
-          for (let l = 0; l < 6; l++) {
-            for (let m = 0; m < 6; m++) {
-              if (bo.config[l][m] === '0') {
-                let coord_str_i = (l + 1).toString();
-                let coord_str_j = (m + 1).toString();
-                bo.log.push('w' + coord_str_i + coord_str_j);
-              } else if (bo.config[l][m] === '1') {
-                let coord_str_i = (l + 1).toString();
-                let coord_str_j = (m + 1).toString();
-                bo.log.push('b' + coord_str_i + coord_str_j);
-              }
-            }
-          }
-          const winner = bo.check_winner();
-          if (winner !== null) {
-              bo.winner = winner;
-          }
-        // Sends the updated game state to both clients
-        sendGameState(gameId, true);
-        bo.sockets['0'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
-        bo.sockets['1'].send(JSON.stringify({ type: 'select', i: row, j: col, color }));
-        // Handles "quarter" command
-        } else if (parsedMsg.type === 'quarter') {
-          const { q: quarter, alpha: alpha } = parsedMsg;
-          let log_size = bo.log.length;
-          if (alpha === '1') {
-            for (let i = 0; i < log_size; i++) {
-              let truncated_log = bo.log[i].substring(1);
-              if (truncated_log[0] === '1' && truncated_log[1] === '1') {
-                bo.log[i][2] = '3';
-              }
-              else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
-                bo.log[i][1] = '3';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
-                bo.log[i][2] = '1';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
-                bo.log[i][1] = '1';
-              }
-              else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '3';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
-                bo.log[i][1] = '3';
-                bo.log[i][2] = '2';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '1';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
-                bo.log[i][1] = '1';
-                bo.log[i][2] = '2';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '2';
-              }
-            }
-          } else if (alpha === '-1') {
-            for (let i = 0; i < log_size; i++) {
-              let truncated_log = bo.log[i].substring(1);
-              if (truncated_log[0] === '1' && truncated_log[1] === '1') {
-                bo.log[i][1] = '3';
-              }
-              else if (truncated_log[0] === '1' && truncated_log[1] === '3') {
-                bo.log[i][2] = '1';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '3') {
-                bo.log[i][2] = '1';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '1') {
-                bo.log[i][2] = '3';
-              }
-              else if (truncated_log[0] === '1' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '1';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '3') {
-                bo.log[i][1] = '1';
-                bo.log[i][2] = '2';
-              }
-              else if (truncated_log[0] === '3' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '3';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '1') {
-                bo.log[i][1] = '3';
-                bo.log[i][2] = '2';
-              }
-              else if (truncated_log[0] === '2' && truncated_log[1] === '2') {
-                bo.log[i][1] = '2';
-                bo.log[i][2] = '2';
-              }
-            }
-          }
-          if (bo.rotate(quarter, parseInt(alpha))) {
-            bo.turn = bo.turn === '0' ? '1' : '0';
-          }
-          const winner = bo.check_winner();
-          if (winner !== null) {
-            bo.winner = winner;
-          }
-        // Handles other commands
-        } else if (parsedMsg.type === 'winner') {
-          bo.winner = parsedMsg.winner;
-          //console.log(`[GAME] Player ${parsedMsg.winner} won in game ${gameId}`);
-        } else if (parsedMsg.type === 'tie') {
-          bo.winner = '2';
-          //console.log(`[GAME] Tie in game ${gameId}`);
-        } else {
-          console.error(`[ERROR] Invalid command: ${msg}`);
-        }
-      }
-      if (bo.ready) {
-        const elapsedTime = 1;
-        if (bo.turn === '0') {
-          bo.timers['0'] = Math.max(bo.timers['0'] - elapsedTime, 0);
-        } else {
-          bo.timers['1'] = Math.max(bo.timers['1'] - elapsedTime, 0);
-        }
-        sendGameState(gameId, true);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  });
+        console.log('[GAME] Board configuration changed. Clearing marbles.');
+        this.bo.config = data.board;
+        this.draw_marble();
+      }      
 
-  socket.on('close', () => {
-    console.log(`[DATA] Player ${currentId} disconnected`);
-    if (bo.winner !== '-1') return;
-    if (bo.clients.length !== 2) {
-      bo.winner = currentId === '0' ? '1' : '0';
-      sendGameState(gameId);
+      this.needRedraw = true;
+      }
+    };
+
+    console.log('Socket connection:', this.socket);
+  }    
+  
+  preload(){
+    /* Loads the game assets */
+    this.load.spritesheet(
+      "title",
+      "data/assets/img/title_game.png",
+      {
+        frameWidth: 137,
+        frameHeight: 40
+      }
+    );
+    
+    this.load.spritesheet(
+      "time_label",
+      "data/assets/img/time_label.png",
+      {
+        frameWidth: 200,
+        frameHeight: 95
+      }
+    );
+
+    this.load.spritesheet(
+      "key_label",
+      "data/assets/img/key_label.png",
+      {
+        frameWidth: 320,
+        frameHeight: 40
+      }
+    );
+
+    this.load.spritesheet(
+      "white_label",
+      "data/assets/img/white_label.png",
+      {
+        frameWidth: 200,
+        frameHeight: 30
+      }
+    );
+
+    this.load.spritesheet(
+      "black_label",
+      "data/assets/img/black_label.png",
+      {
+        frameWidth: 200,
+        frameHeight: 30
+      }
+    );
+
+    this.load.spritesheet(
+      "timer",
+      "data/assets/img/timer.png",
+      {
+        frameWidth: 72.4,
+        frameHeight: 72,
+      }
+    );
+
+    this.load.spritesheet(
+      "message",
+      "data/assets/img/message_label.png",
+      {
+        frameWidth: 450,
+        frameHeight: 30,
+      }
+    );
+
+    this.load.spritesheet(
+      "p1",
+      "data/assets/img/p1.png",
+      {
+        frameWidth: 47,
+        frameHeight: 47
+      }
+    );
+
+    this.load.spritesheet(
+      "p2",
+      "data/assets/img/p2.png",
+      {
+        frameWidth: 47,
+        frameHeight: 47
+      }
+    );
+
+    this.load.spritesheet(
+      "quarter_board",
+      "data/assets/img/quarter_board.png",
+      {
+        frameWidth: 284,
+        frameHeight: 284
+      }
+    );
+
+    this.load.spritesheet(
+      "white_square",
+      "data/assets/img/white_square.png",
+      {
+        frameWidth: 80,
+        frameHeight: 80
+      }
+    );
+
+    this.load.spritesheet(
+      "pass_on",
+      "data/assets/img/pass_on.png",
+      {
+        frameWidth: 203,
+        frameHeight: 123
+      }
+    )
+
+    this.load.spritesheet(
+      "ra_on",
+      "data/assets/img/ra_on.png",
+      {
+        frameWidth: 84,
+        frameHeight: 84
+      }
+    )
+
+    this.load.spritesheet(
+      "rc_on",
+      "data/assets/img/rc_on.png",
+      {
+        frameWidth: 84,
+        frameHeight: 84
+      }
+    )
+
+    this.load.spritesheet(
+      "widget",
+      "data/assets/img/widget_label.png",
+      {
+        frameWidth: 432,
+        frameHeight: 260
+      }
+    )
+
+    this.load.spritesheet(
+      "control",
+      "data/assets/img/control_label.png",
+      {
+        frameWidth: 275,
+        frameHeight: 315
+      }
+    )
+
+    this.load.spritesheet(
+      "moon",
+      "data/assets/img/moon.png",
+      {
+        frameWidth: 21,
+        frameHeight: 30
+      }
+    )
+
+    this.load.spritesheet(
+      "select_1",
+      "data/assets/img/select_1.png",
+      {
+        frameWidth: 295,
+        frameHeight: 295
+      }
+    )
+
+    this.load.spritesheet(
+      "select_2",
+      "data/assets/img/select_2.png",
+      {
+        frameWidth: 295,
+        frameHeight: 295
+      }
+    )
+
+    this.load.spritesheet(
+      "select_3",
+      "data/assets/img/select_3.png",
+      {
+        frameWidth: 295,
+        frameHeight: 295
+      }
+    )
+
+    this.load.spritesheet(
+      "select_4",
+      "data/assets/img/select_4.png",
+      {
+        frameWidth: 295,
+        frameHeight: 295
+      }
+    )
+
+    this.load.spritesheet(
+      "names",
+      "data/assets/img/names.png",
+      {
+        frameWidth: 280,
+        frameHeight: 80,
+      }
+    )
+             
+    this.load.audio(
+       "marble_placement",
+       "data/assets/audio/marble_placement_sfx.mp3"
+    );
+    
+    this.load.audio(
+       "quarter_rotation",
+       "data/assets/audio/quarter_rotation_sfx.mp3"
+    );
+  }
+  
+  create() {
+    /* Inits variables, defines animations, sounds, displays assets, handles clicks */
+    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_y = this.cameras.main.height / 2 - 40;
+    const dx = offset_x - 283;
+    const dy = offset_y - 283;
+    const q1_coord = (offset_x - 142 + 0.75, offset_y - 142 + 0.75);
+    const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
+    const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
+    const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
+    const marble_placement_sfx = this.sound.add('marble_placement');
+    const quarter_rotation_sfx = this.sound.add('quarter_rotation');
+
+    this.updateCounter = 0;
+    this.cameras.main.setBounds(0, 0, 1366, 768);
+    this.count = 0;
+    this.marbles = [];
+    this.has_placed = false;
+    this.has_selected_q = false;
+    this.first_move = true;
+    this.alpha = 0;
+    this.bo = new Board(566, 566);
+    this.name = 'player';
+    this.running = true;
+    this.serial_key = '';
+    this.handlersSet = false;
+    this.connect();
+    this.counterClockwiseBtn = new Phaser.Geom.Rectangle(780 - 40, 685 - 40, 84, 84);
+    this.clockwiseBtn = new Phaser.Geom.Rectangle(885 - 40, 685 - 40, 84, 84);
+    this.copykeyBtn = new Phaser.Geom.Rectangle(270, 490, 250, 20);
+    this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
+    this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
+    this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
+    this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
+    this.p1Text = this.add.text(1080, 250, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
+    this.p2Text = this.add.text(1105, 50, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
+    this.statusText = this.add.text(this.cameras.main.width / 2, 700, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.waitingText = this.add.text(this.cameras.main.width / 2, 100, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.move = '';
+    this.string_color = '';
+    this.moon = null;
+    this.hover_1 = null;
+    this.hover_2 = null;
+    this.hover_3 = null;
+    this.hover_4 = null;
+    this.p1 = null;
+    this.p2 = null;
+
+    // GUI initialization
+    this.time_label = this.add.image(400, 130, 'time_label');
+    this.timerText1 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.timerText2 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.add.image(395, 570, 'names');
+    this.add.image(780, 685, 'rc_on');
+    this.add.image(885, 685, 'ra_on');
+    // Board blitting
+    this.add.image(offset_x, offset_y, 'white_square');
+    this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
+    this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
+    this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
+    this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
+
+    const textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 30,
+      color: '#FFFFFF'
+    };
+
+    const textStyle2 = {
+      fontFamily: 'Arial',
+      fontSize: 50,
+      color: '#FFFFFF'
+    };
+
+    const textStyle3 = {
+      fontFamily: 'Arial',
+      fontSize: 15,
+      color: '#FFFFFF'
+    };
+
+    const textStyle4 = {
+      fontFamily: 'Arial',
+      fontSize: 23,
+      color: '#FFFFFF'
+    };
+
+    const textStyle5 = {
+      fontFamily: 'Arial',
+      fontSize: 18,
+      fontStyle: 'italic',
+      color: '#FFFFFF',
+      wordWrap: { width: 310 }
+    };
+
+    /*
+    COMING SOON - MOVE LOG
+    var graphics = this.make.graphics();
+    graphics.fillRect(1195, 495, 260, 318);
+    var mask = new Phaser.Display.Masks.GeometryMask(this, graphics);
+    this.log_text = this.add.text(1080, 350, '', textStyle5); //.setOrigin(0);
+    this.log_text.setMask(mask);
+    var zone = this.add.zone(1195, 495, 260, 318).setInteractive(); //.setOrigin(0)
+    */
+    
+
+    // Animations and sprites
+    /*
+    this.anims.create({
+      key: 'time_flowing',
+      frames: this.anims.generateFrameNumbers('timer', { frames: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }),
+      frameRate: 8,
+      repeat: -1
+    });
+    const timer_sprite = this.add.sprite(1120, 160, 'timer');
+    timer_sprite.setScale(0.7);
+    timer_sprite.play('time_flowing');
+    */
+  
+    // Register event listeners
+    this.input.on('pointerup', (pointer) => {
+      //console.log('[DEBUG] THIS BO CONFIG RIGHT BEFORE CLICKING: ', this.bo.config);
+      //console.log('[DEBUG] Click event captured:', pointer.x, pointer.y);
+      //console.log('[DBEUG] this.color:', this.color);
+      //console.log('[DEBUG] this.bo.ready:', this.bo.ready);
+      if (this.game_state_received && this.color !== 's' && this.bo.ready) {
+        //console.log('[DEBUG] Passed the first condition');
+        if (this.color === this.bo.turn) {
+          //console.log('[DEBUG] Passed the second condition');
+          const pos = { x: pointer.x, y: pointer.y };
+          if (pos.x >= offset_x - 284 && pos.x <= offset_x + 284 && pos.y >= offset_y - 284 && pos.y <= offset_y + 284) {
+            marble_placement_sfx.play();
+            console.log('[DEBUG] Passed the third condition');
+            console.log("[GAME] Game state:");
+            console.log("[GAME] this.has_placed:", this.has_placed);
+            console.log("[GAME] this.has_selected_q:", this.has_selected_q);
+            console.log("[GAME] this.q:", this.q);
+            console.log("[GAME] this.alpha:", this.alpha);
+            console.log("[GAME] this.color:", this.color);
+            console.log("[GAME] this.bo.ready:", this.bo.ready);
+            console.log("[GAME] this.bo.turn:", this.bo.turn);
+            console.log("[GAME] this.bo.config: ", this.bo.config);
+            if (!this.has_placed) {
+              console.log('[DEBUG] has placed');
+              console.log('[GAME] pos: ', pos)
+              const [i, j] = this.bo.handle_click(pos, this.color, dx, dy);
+              console.log("[DEBUG] j: ", i);
+              console.log("[DEBUG] i: ", j);
+              console.log('[DEBUG] ij: ', this.bo.config[j][i]);
+              
+              // Check if the cell is empty
+              if (this.bo.config[j][i] === '-1') {
+                this.socket.send(JSON.stringify({ type: 'select', i, j, color: this.color }));
+                console.log('[GAME] Data sent to server (select):', { type: 'select', i, j, color: this.color });
+                this.has_placed = true;
+                this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
+              } else {
+                console.log('[GAME] Warning! invalid placement, please select a free cell');
+                this.has_placed = false;
+              }
+            } else {
+              this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
+              // Displays the value of the quarter based on the value of q
+              if (this.q === 1) {
+                if (this.hover_1) {
+                  this.hover_1.destroy();
+                }
+                if (this.hover_2) {
+                  this.hover_2.destroy();
+                }
+                if (this.hover_3) {
+                  this.hover_3.destroy();
+                }
+                if (this.hover_4) {
+                  this.hover_4.destroy();
+                }
+                this.hover_1 = this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'select_1');
+              } else if (this.q === 2) {
+                if (this.hover_1) {
+                  this.hover_1.destroy();
+                }
+                if (this.hover_2) {
+                  this.hover_2.destroy();
+                }
+                if (this.hover_3) {
+                  this.hover_3.destroy();
+                }
+                if (this.hover_4) {
+                  this.hover_4.destroy();
+                }
+                this.hover_2 = this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'select_2');
+              } else if (this.q === 3) {
+                if (this.hover_1) {
+                  this.hover_1.destroy();
+                }
+                if (this.hover_2) {
+                  this.hover_2.destroy();
+                }
+                if (this.hover_3) {
+                  this.hover_3.destroy();
+                }
+                if (this.hover_4) {
+                  this.hover_4.destroy();
+                }
+                this.hover_3 = this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'select_3');
+              } else if (this.q === 4) {
+                if (this.hover_1) {
+                  this.hover_1.destroy();
+                }
+                if (this.hover_2) {
+                  this.hover_2.destroy();
+                }
+                if (this.hover_3) {
+                  this.hover_3.destroy();
+                }
+                if (this.hover_4) {
+                  this.hover_4.destroy();
+                }
+                this.hover_4 = this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'select_4');
+              }
+              this.tweens.add({
+                targets: this.hover_1,
+                alpha: 0.25,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+              this.tweens.add({
+                targets: this.hover_2,
+                alpha: 0.25,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+              this.tweens.add({
+                targets: this.hover_3,
+                alpha: 0.25,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+              this.tweens.add({
+                targets: this.hover_4,
+                alpha: 0.25,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+              console.log("[GAME] Has selected quarter: ", this.q)
+              this.has_selected_q = true;
+            }
+          }
+        }
+      }
+
+      if (Phaser.Geom.Rectangle.Contains(this.copykeyBtn, pointer.x, pointer.y)) {
+        console.log('[GAME] Game key copied to the clipboard');
+        const tempInput = document.createElement("input");
+        tempInput.value = this.key;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        this.cp_warning = this.add.text(310, 460, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
+        var cp_delay = 1000;
+        this.time.delayedCall(cp_delay, function() {
+            this.cp_warning.destroy();
+        }, [], this);
+      }
+
+      // Clockwise rotation
+      if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {
+        console.log('[GAME] Clockwise rotation event captured');
+        if (this.has_placed === true && this.q !== null) {
+          this.alpha = 1;
+          console.log(this.alpha);
+        }
+        console.log('[GAME] Pass turn event captured');
+        if (this.alpha !== 0) {
+          if (this.color === this.bo.turn && this.bo.ready && this.q !== null) {
+            quarter_rotation_sfx.play();
+            this.socket.send(JSON.stringify({ type: 'quarter', q: this.q, alpha: this.alpha }));
+            console.log('[GAME] Data sent to server (quarter):', { type: 'quarter', q: this.q, alpha: this.alpha });
+            this.has_placed = false;
+            this.has_selected_q = false;
+            this.first_move = true;
+            this.alpha = 0;
+            this.q = null;
+            if (this.hover_1) {
+              this.hover_1.destroy();
+            }
+            if (this.hover_2) {
+              this.hover_2.destroy();
+            }
+            if (this.hover_3) {
+              this.hover_3.destroy();
+            }
+            if (this.hover_4) {
+              this.hover_4.destroy();
+            }
+            if (this.p1) {
+              this.p1.destroy();
+            }
+            if (this.p2) {
+              this.p2.destroy();
+            }
+          }
+        }
+      }
+    
+      // Counterclockwise rotation
+      if (Phaser.Geom.Rectangle.Contains(this.counterClockwiseBtn, pointer.x, pointer.y)) {
+        console.log('[GAME] Counterclockwise rotation event captured');
+        if (this.has_placed === true && this.q !== null) {
+          this.alpha = -1;
+          console.log(this.alpha);
+        }
+        console.log('[GAME] Pass turn event captured');
+        if (this.alpha !== 0) {
+          if (this.color === this.bo.turn && this.bo.ready && this.q !== null) {
+            this.socket.send(JSON.stringify({ type: 'quarter', q: this.q, alpha: this.alpha }));
+            console.log('[GAME] Data sent to server (quarter):', { type: 'quarter', q: this.q, alpha: this.alpha });
+            this.has_placed = false;
+            this.has_selected_q = false;
+            this.first_move = true;
+            this.alpha = 0;
+            this.q = null;
+            if (this.hover_1) {
+              this.hover_1.destroy();
+            }
+            if (this.hover_2) {
+              this.hover_2.destroy();
+            }
+            if (this.hover_3) {
+              this.hover_3.destroy();
+            }
+            if (this.hover_4) {
+              this.hover_4.destroy();
+            }
+          }
+        }
+      }
+    });
+
+    /*
+    COMING SOON - MOVE LOG
+    zone.on('pointermove', function (pointer) {
+      if (pointer.isDown)
+      {
+          this.log_text.y += (pointer.velocity.y / 10);
+
+          this.log_text.y = Phaser.Math.Clamp(text.y, -400, 300);
+      }
+
+    });
+    */
+  }
+  
+  update() {
+    /* Loops the attributes of various game objects per game logic */
+    console.log(this.width);
+    if (this.gameStateUpdated) {
+      this.gameStateUpdated = false;
+      console.log('[GAME] Game state is updated');
+      console.log("winner: ", this.bo.winner);
+      this.clear_marble();
+      this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
+      this.updateDisplayedTimers(this.bo.timers, this.color);
     }
-    console.log(`[DATA] Game ${gameId} ended`);
-    clearInterval(bo.updateTimersInterval);
-    delete games[gameId];
-    connections = connections - 2;
-  });
+  
+    if (this.needRedraw) {
+      this.needRedraw = false;
+      this.waitingText.visible = !this.ready;
+      
+      if (this.ready) {
+        const p1_time = this.bo.time1;
+        const p2_time = this.bo.time2;
+        this.redraw_window(this, this.bo, p1_time, p2_time, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
+      }
+    }
+  
+    this.updateCounter++;
+    if (this.updateCounter % 60 === 0) {
+      this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
+    }
+  }    
 }
 
-server.on('connection', (socket, req) => {
-  const clientIP = req.socket.remoteAddress;
-  console.log('---------------------------------------------------------------------------');
-  console.log('[CONNECTION] New connection from:', clientIP);
-  console.log('[CONNECTION] Number of Connections:', connections + 1);
-  console.log('[CONNECTION] Number of Games:', Object.keys(games).length);
+// Web window embedding setup
+const config = {
+  width: 1366,
+  height: 768,
+  backgroundColor: "#232323",
+  parent: "gameContainer",
+  scale: {
+    // Fit to window
+    mode: Phaser.Scale.FIT,
+    // Center vertically and horizontally
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  scene: [GameScene],
+};
 
-  socket.on('message', (data) => {
-    const message = JSON.parse(data);
-    switch (message.type) {
-      case 'initialConnection':
-        handleClientMessage(socket, message.gType, message.gKey, message.playerName);
-        break;
-    }
-  });
-});
+const game = new Phaser.Game(config);
