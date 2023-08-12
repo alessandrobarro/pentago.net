@@ -11,13 +11,13 @@ import { createRequire } from 'module';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import pkg from 'pg';
+//import pkg from 'pg';
 
 
 /* SQL */
 /* -------------------------------------------------------------------------------------- */
 
-
+/*
 const { Client } = pkg;
 
 const client = new Client({
@@ -27,7 +27,8 @@ const client = new Client({
     }
 });
 
-//client.connect();
+client.connect();
+*/
 
 // INSERT a new user
 async function insertUser(username) {
