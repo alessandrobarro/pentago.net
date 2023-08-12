@@ -6,9 +6,10 @@
 https://github.com/basedryo/pentago.net
 */
 
-// Board module contains game rules and methods
+/*----------------------------------------------Modules----------------------------------------------*/
 import Board from './game-board.js';
 
+/*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
 const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
 console.log('[DATA] Host: ', HOST);
@@ -20,14 +21,17 @@ console.log('[DATA] Game type (0: public, 1: private): ', gType);
 const gKey = localStorage.getItem("gKey");
 console.log("[DATA] Game R-Key: ", gKey);
 
+/*------------------------------------------Helper functions-----------------------------------------*/
+
 function truncate(str, length) {
+  /* Truncates the player name */
   if (str.length > length) {
     return str.slice(0, length) + '...';
   } else return str;
 }
 
-// Takes the screenshot of the game with html2canvas implicitly imported
 async function captureGameBoard(scene, x, y, width, height) {
+  /* Takes the screenshot of the game with html2canvas implicitly imported */
   return new Promise((resolve) => {
     scene.game.renderer.snapshot((image) => {
       const canvas = document.createElement('canvas');
@@ -41,10 +45,10 @@ async function captureGameBoard(scene, x, y, width, height) {
 }
 
 function matricesEqual(matrix1, matrix2) {
+  /* Calculates the equality of two given matrices */
   if (matrix1.length !== matrix2.length || matrix1[0].length !== matrix2[0].length) {
     return false; // Matrices are not the same size
   }
-
   for (let i = 0; i < matrix1.length; i++) {
     for (let j = 0; j < matrix1[0].length; j++) {
       if (matrix1[i][j] !== matrix2[i][j]) {
@@ -52,11 +56,10 @@ function matricesEqual(matrix1, matrix2) {
       }
     }
   }
-
   return true; // Matrices are equal
 }
 
-// Main game class
+/*-----------------------------------------Main Game class----------------------------------------*/
 class GameScene extends Phaser.Scene {
   constructor() {
     super("gameScene");
@@ -66,14 +69,15 @@ class GameScene extends Phaser.Scene {
     this.timersStarted = false;
   }
 
-  // Runs a real-time timer
   formatTime(seconds) {
+    /* Run a real time timer */
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
   }
 
   updateDisplayedTimers(timers, color) {
+    /* Update the displayer timers */
     let timerValue1 = timers[0] < 0 ? 0 : timers[0];
     let timerValue2 = timers[1] < 0 ? 0 : timers[1];
     const formattedTime1 = this.formatTime(timerValue1);
@@ -86,8 +90,8 @@ class GameScene extends Phaser.Scene {
     }
   }
 
-  // Refreshes the game-window with the necessary parameters
   redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
+    /* Refreshes the game window [NEEDS CHECK] */
     scene.cameras.main.setBackgroundColor('#232323');
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
@@ -150,7 +154,6 @@ class GameScene extends Phaser.Scene {
       scene.add.image(850, 30, 'message');
       const has_placed_text = scene.add.text(766, 20, 'Waiting for player', textStyle3);
     }
-
   }
 
   draw_marble() {
@@ -162,62 +165,47 @@ class GameScene extends Phaser.Scene {
       for (let m = 0; m < 6; m++) {
         if (this.bo.config[l][m] === '0') {
           if (l === 1 || l === 4) {
-            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l]])
+            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
           } else {
-            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l]])
+            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
           }
         } else if (this.bo.config[l][m] === '1') {
           if (l === 1 || l === 4) {
-            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l]])
+            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
           } else {
-            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l]])
+            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
           }
         }
       }
     }
-    console.log(`Marble list: `, this.marbles);
+    //console.log(`[DEBUG] Marble list: `, this.marbles);
   }
-
-  /*
-  clear_marble(){
-  console.log('Clearing marbles. Current marbles array:', this.marbles);
-  console.log('Current board configuration:', this.bo.config);
-
-    const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
-  
-    for (let k = 0; k < this.marbles.length; k++) {
-      for (let l = 0; l < 6; l++) {
-        for (let m = 0; m < 6; m++) {
-          const coord1 = [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l];
-          const coord2 = [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l];
-          if ((this.marbles[k][1][0] == coord1[0] && this.marbles[k][1][1] == coord1[1]) || 
-              (this.marbles[k][1][0] == coord2[0] && this.marbles[k][1][1] == coord2[1]) && 
-              this.bo.config[l][m] == '-1') {
-            this.marbles[k][0].destroy();
-            console.log('Destroyed: ', this.marbles[k]);
-          }
-        }
-      }
-    }
-  }
-  */
 
   clear_marble() {
-    console.log('Clearing marbles. Current marbles array:', this.marbles);
-    console.log('Current board configuration:', this.bo.config);
-  
+    /* Clears the mismatching marbles' drawings from the board */
+
+    //console.log('[DEBUG] Clearing marbles. Current marbles array:', this.marbles);
+    //console.log('[DEBUG] Current board configuration:', this.bo.config);
+
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
   
-    this.marbles = this.marbles.filter(([marbleImage, coords]) => {
+    this.marbles = this.marbles.filter(([marbleImage, coords, player]) => {
       for (let l = 0; l < 6; l++) {
         for (let m = 0; m < 6; m++) {
           const coord = (l === 1 || l === 4) ?
             [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l] :
             [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l];
           
+          /* Handle case where there is a marble of any color on a '-1' tile */
           if (coords[0] === coord[0] && coords[1] === coord[1] && this.bo.config[l][m] === '-1') {
+            marbleImage.destroy();
+            console.log('Destroyed: ', marbleImage);
+            return false; // Remove the marble from the array
+          }
+
+          /* Handle case where the marble and the respective tile are mismatching */
+          else if (coords[0] === coord[0] && coords[1] === coord[1] && player != this.bo.config[l][m]) {
             marbleImage.destroy();
             console.log('Destroyed: ', marbleImage);
             return false; // Remove the marble from the array
@@ -228,10 +216,8 @@ class GameScene extends Phaser.Scene {
     });
   }
   
-  
-
-  // Implements client-side connection and data handling
   connect() {
+    /* Implement client-side connection and data handling */
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
     const initialConnectionMessage = {
@@ -276,7 +262,7 @@ class GameScene extends Phaser.Scene {
         color: '#FFFFFF'
       };
 
-      if (data.type === 'gameState' && flag <= 1) { // looping problem
+      if (data.type === 'gameState' && flag <= 1) { //looping problem [NEEDS CHECK]
         let serial = 'Room number #';
         if (data.key !== undefined) {
           serial += data.key;
@@ -323,9 +309,7 @@ class GameScene extends Phaser.Scene {
         }, 500);
       }
 
-    //console.log(this.move_log);
-    //console.log('[GAME] Data received from server:', data);
-    //console.log(data);
+    //console.log('[DEBUG] Data received from server:', data);
   
     // Updates the client game-state
     if (data.type === 'gameState') {
@@ -361,8 +345,8 @@ class GameScene extends Phaser.Scene {
     console.log('Socket connection:', this.socket);
   }    
   
-  // Loads the necessary assets
   preload(){
+    /* Loads the game assets */
     this.load.spritesheet(
       "title",
       "data/assets/img/title_game.png",
@@ -572,9 +556,8 @@ class GameScene extends Phaser.Scene {
     );
   }
   
-  // Inits variables, defines animations, sounds, displays assets, handles clicks
   create() {
-    /* Game variables and contants */
+    /* Inits variables, defines animations, sounds, displays assets, handles clicks */
     const offset_x = this.cameras.main.width / 2 + 150;
     const offset_y = this.cameras.main.height / 2 - 40;
     const dx = offset_x - 283;
@@ -621,14 +604,14 @@ class GameScene extends Phaser.Scene {
     this.p1 = null;
     this.p2 = null;
 
-    /* GUI initialization */
+    // GUI initialization
     this.time_label = this.add.image(400, 130, 'time_label');
     this.timerText1 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
     this.timerText2 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
     this.add.image(395, 570, 'names');
     this.add.image(780, 685, 'rc_on');
     this.add.image(885, 685, 'ra_on');
-    /* BOARD */
+    // Board blitting
     this.add.image(offset_x, offset_y, 'white_square');
     this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
     this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
@@ -693,14 +676,14 @@ class GameScene extends Phaser.Scene {
   
     // Register event listeners
     this.input.on('pointerup', (pointer) => {
-      //console.log('[GAME]THIS BO CONFIG RIGHT BEFORE CLICKING: ', this.bo.config);
-      //console.log('Click event captured:', pointer.x, pointer.y);
-      //console.log('this.color:', this.color);
-      //console.log('this.bo.ready:', this.bo.ready);
+      //console.log('[DEBUG] THIS BO CONFIG RIGHT BEFORE CLICKING: ', this.bo.config);
+      //console.log('[DEBUG] Click event captured:', pointer.x, pointer.y);
+      //console.log('[DBEUG] this.color:', this.color);
+      //console.log('[DEBUG] this.bo.ready:', this.bo.ready);
       if (this.game_state_received && this.color !== 's' && this.bo.ready) {
-        console.log('[DEBUG] Passed the first condition');
+        //console.log('[DEBUG] Passed the first condition');
         if (this.color === this.bo.turn) {
-          console.log('[DEBUG] Passed the second condition');
+          //console.log('[DEBUG] Passed the second condition');
           const pos = { x: pointer.x, y: pointer.y };
           if (pos.x >= offset_x - 284 && pos.x <= offset_x + 284 && pos.y >= offset_y - 284 && pos.y <= offset_y + 284) {
             marble_placement_sfx.play();
@@ -722,7 +705,7 @@ class GameScene extends Phaser.Scene {
               console.log("[DEBUG] i: ", j);
               console.log('[DEBUG] ij: ', this.bo.config[j][i]);
               
-              /* Check if the cell is empty */
+              // Check if the cell is empty
               if (this.bo.config[j][i] === '-1') {
                 this.socket.send(JSON.stringify({ type: 'select', i, j, color: this.color }));
                 console.log('[GAME] Data sent to server (select):', { type: 'select', i, j, color: this.color });
@@ -843,7 +826,7 @@ class GameScene extends Phaser.Scene {
         }, [], this);
       }
 
-      /* Clockwise rotation */
+      // Clockwise rotation
       if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {
         console.log('[GAME] Clockwise rotation event captured');
         if (this.has_placed === true && this.q !== null) {
@@ -883,7 +866,7 @@ class GameScene extends Phaser.Scene {
         }
       }
     
-      /* Counterclockwise rotation */
+      // Counterclockwise rotation
       if (Phaser.Geom.Rectangle.Contains(this.counterClockwiseBtn, pointer.x, pointer.y)) {
         console.log('[GAME] Counterclockwise rotation event captured');
         if (this.has_placed === true && this.q !== null) {
@@ -933,7 +916,6 @@ class GameScene extends Phaser.Scene {
   
   update() {
     /* Loops the attributes of various game objects per game logic */
-
     console.log(this.width);
     if (this.gameStateUpdated) {
       this.gameStateUpdated = false;
@@ -962,6 +944,7 @@ class GameScene extends Phaser.Scene {
   }    
 }
 
+// Web window embedding setup
 const config = {
   width: 1366,
   height: 768,
