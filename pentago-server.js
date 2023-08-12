@@ -127,7 +127,7 @@ async function fetchUserStats(user_id) {
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PORT = 443;
+const PORT = process.env.PORT || 443;
 const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
 const URL = 'wss://' + IP + ':' + PORT;
 const express = require('express');
