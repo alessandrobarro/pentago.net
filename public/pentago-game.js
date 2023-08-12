@@ -10,7 +10,7 @@ https://github.com/basedryo/pentago.net
 import Board from './game-board.js';
 
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = '10.0.0.209';
+const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -242,7 +242,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('ws://10.0.0.209:443');
+    this.socket = new WebSocket('wss://pentago-b25ac50cd7d5.herokuapp.com');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
