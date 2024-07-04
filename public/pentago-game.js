@@ -309,7 +309,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('ws://pentago-62c1232b3105.herokuapp.com');
+    this.socket = new WebSocket('wss://pentago-62c1232b3105.herokuapp.com');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
