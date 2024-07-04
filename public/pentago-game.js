@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'localhost';
+const IP = 'pentago-62c1232b3105.herokuapp.com';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
