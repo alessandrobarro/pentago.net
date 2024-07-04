@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-b25ac50cd7d5.herokuapp.com';
+const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -22,7 +22,6 @@ const gKey = localStorage.getItem("gKey");
 console.log("[DATA] Game R-Key: ", gKey);
 
 /*------------------------------------------Helper functions-----------------------------------------*/
-
 function truncate(str, length) {
   /* Truncates the player name */
   if (str.length > length) {
@@ -67,6 +66,7 @@ class GameScene extends Phaser.Scene {
     this.gameStateUpdated = false;
     this.game_state_received = false;
     this.timersStarted = false;
+    
   }
 
   formatTime(seconds) {
@@ -90,11 +90,87 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  getQuadrantIndex(x, y) {
+    const centerX = this.cameras.main.width / 2 + 150;
+    const centerY = this.cameras.main.height / 2;
+
+    const relativeX = x - centerX;
+    const relativeY = y - centerY;
+
+    if (relativeX < 0 && relativeY < 0) {
+        return 1;
+    } else if (relativeX > 0 && relativeY > 0) {
+        return 4;
+    } else if (relativeX < 0 && relativeY > 0) {
+        return 3;
+    } else if (relativeX > 0 && relativeY < 0) {
+        return 2;
+    }
+
+    return -1;
+  }
+
+  calculateRotationAngle(pointer) {
+    const quadrantCenter = this.getQuadrantCenter(this.draggingQuadrant.index);
+    const initialAngle = Math.atan2(this.draggingQuadrant.initialY - quadrantCenter[1], this.draggingQuadrant.initialX - quadrantCenter[0]);
+    const currentAngle = Math.atan2(pointer.y - quadrantCenter[1], pointer.x - quadrantCenter[0]);
+    const rotationAngle = Phaser.Math.RadToDeg(currentAngle - initialAngle);
+    return rotationAngle;
+  }
+ 
+  getQuadrantCenter(index) {
+    const [topLeft, bottomRight] = this.quadrants[index - 1];
+    const centerX = (topLeft[0] + bottomRight[0]) / 2;
+    const centerY = (topLeft[1] + bottomRight[1]) / 2;
+    return [centerX, centerY];
+  }
+  
+  getMarblesInQuadrant(index) {
+    return this.marbles.filter(([, , , quadrant]) => quadrant === index);
+  }
+
+  rotateQuadrantVisual(index, angle) {
+    const quadrant = this.quadrants_drawings[index - 1];
+    const rotation = Phaser.Math.DegToRad(angle);
+    quadrant.rotation = rotation;
+  }
+
+  rotateMarblesVisual(marbles, angle) {
+    const rotation = Phaser.Math.DegToRad(angle);
+    marbles.forEach(([image, position, player, quadrant]) => {
+      const quadrantCenter = this.getQuadrantCenter(quadrant); // Use the quadrant variable instead of this.q
+      const rotatedPosition = this.rotatePoint(position, quadrantCenter, rotation);
+      image.x = rotatedPosition[0];
+      image.y = rotatedPosition[1];
+    });  
+  }
+  
+  rotatePoint(point, center, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const dx = point[0] - center[0];
+    const dy = point[1] - center[1];
+    return [
+      cos * dx - sin * dy + center[0],
+      sin * dx + cos * dy + center[1]
+    ];
+  }
+   
+  revertRotation() {
+    const quadrant = this.quadrants_drawings[this.draggingQuadrant.index - 1];
+    const marb = this.getMarblesInQuadrant(this.draggingQuadrant.index)
+    quadrant.rotation = 0;
+    marb.forEach(marble => {
+      const [image, position, player, quadrant] = marble;
+      image.x = position[0];
+      image.y = position[1];
+    });
+  }
+    
   redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
-    /* Refreshes the game window [NEEDS CHECK] */
-    scene.cameras.main.setBackgroundColor('#232323');
+    scene.cameras.main.setBackgroundColor('#201f1f');
     const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
+    const offset_y = this.cameras.main.height / 2;
 
     /* GUI */
     const textStyle = {
@@ -128,87 +204,92 @@ class GameScene extends Phaser.Scene {
     };
 
     if (bo.turn === '0') {
-      scene.time_label = this.add.image(308, 130, 'white_label')
+      scene.time_label = this.add.image(308, 170, 'white_label')
     }
     else if (bo.turn === '1') {
-      scene.time_label = this.add.image(308, 130, 'black_label')
+      scene.time_label = this.add.image(308, 170, 'black_label')
     }
-
-    /*
-    COMING SOON - MOVE LOG
-    if (ready) {
-      scene.log_text = scene.add.text(1080, 350, scene.move_log, textStyle5);
-      //console.log(scene.move_log);
-    }
-    */
 
     if (!has_placed && bo.turn === color && ready) {
-      scene.add.image(850, 30, 'message');
-      const has_placed_text = scene.add.text(705, 20, 'Click on the board to place a marble', textStyle3);
+      scene.add.image(850, 70, 'message');
+      const has_placed_text = scene.add.text(705, 60, 'Click on the board to place a marble', textStyle3);
     }
     else if (has_placed && !has_selected_q && bo.turn === color && ready) {
-      scene.add.image(850, 30, 'message');
-      const has_placed_text = scene.add.text(650, 20, 'Click on the board to select a quadrant and rotate it', textStyle3);
+      scene.add.image(850, 70, 'message');
+      const has_placed_text = scene.add.text(650, 60, 'Click on the board to select a quadrant and rotate it', textStyle3);
     }
     else if (!has_placed && bo.turn !== color || !ready) {
-      scene.add.image(850, 30, 'message');
-      const has_placed_text = scene.add.text(766, 20, 'Waiting for player', textStyle3);
+      scene.add.image(850, 70, 'message');
+      const has_placed_text = scene.add.text(766, 60, 'Waiting for player', textStyle3);
     }
   }
 
   draw_marble() {
     /* Draw new marbles on the board */
     const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
-
+    const offset_y = this.cameras.main.height / 2;
+  
     for (let l = 0; l < 6; l++) {
       for (let m = 0; m < 6; m++) {
+        let x = (l === 1 || l === 4) ? offset_x - 236 - 0.15 + 94.6 * m : offset_x - 236 + 94.6 * m;
+        let y = offset_y - 236 + 94.6 * l;
+        let marbleType = '';
         if (this.bo.config[l][m] === '0') {
-          if (l === 1 || l === 4) {
-            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
+          marbleType = 'p1';
+        }
+        else if(this.bo.config[l][m] === '1') {
+          marbleType = 'p2';
+        }
+        if (this.bo.config[l][m] !== '-1') {
+          let quadrant;
+          if (x < offset_x && y < offset_y) {
+            quadrant = 1;  // Top-left
+          } else if (x >= offset_x && y < offset_y) {
+            quadrant = 2;  // Top-right
+          } else if (x < offset_x && y >= offset_y) {
+            quadrant = 3;  // Bottom-left
           } else {
-            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p1'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '0'])
+            quadrant = 4;  // Bottom-right
           }
-        } else if (this.bo.config[l][m] === '1') {
-          if (l === 1 || l === 4) {
-            this.marbles.push([this.add.image(offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
-          } else {
-            this.marbles.push([this.add.image(offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l, 'p2'), [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l], '1'])
+  
+          // Check if the marble already exists
+          const marbleExists = this.marbles.some(marble => 
+            marble[1][0] === x && marble[1][1] === y && marble[2] === this.bo.config[l][m]
+          );
+  
+          // Add the marble only if it does not exist
+          if (!marbleExists) {
+            this.marbles.push([this.add.image(x, y, marbleType), [x, y], this.bo.config[l][m], quadrant]);
           }
         }
       }
     }
-    //console.log(`[DEBUG] Marble list: `, this.marbles);
   }
 
   clear_marble() {
     /* Clears the mismatching marbles' drawings from the board */
-
-    //console.log('[DEBUG] Clearing marbles. Current marbles array:', this.marbles);
-    //console.log('[DEBUG] Current board configuration:', this.bo.config);
-
     const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
+    const offset_y = this.cameras.main.height / 2;
   
-    this.marbles = this.marbles.filter(([marbleImage, coords, player]) => {
+    this.marbles = this.marbles.filter(([marbleImage, coords, player, quadrant]) => {
       for (let l = 0; l < 6; l++) {
         for (let m = 0; m < 6; m++) {
           const coord = (l === 1 || l === 4) ?
             [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l] :
             [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l];
           
-          /* Handle case where there is a marble of any color on a '-1' tile */
-          if (coords[0] === coord[0] && coords[1] === coord[1] && this.bo.config[l][m] === '-1') {
-            marbleImage.destroy();
-            console.log('Destroyed: ', marbleImage);
-            return false; // Remove the marble from the array
-          }
-
-          /* Handle case where the marble and the respective tile are mismatching */
-          else if (coords[0] === coord[0] && coords[1] === coord[1] && player != this.bo.config[l][m]) {
-            marbleImage.destroy();
-            console.log('Destroyed: ', marbleImage);
-            return false; // Remove the marble from the array
+          if (coords[0] === coord[0] && coords[1] === coord[1]) {
+            if (this.bo.config[l][m] === '-1') {
+              // Destroy the marble if it's on a '-1' tile
+              marbleImage.destroy();
+              //console.log('Destroyed: ', marbleImage);
+              return false; // Remove the marble from the array
+            } else if (player != this.bo.config[l][m]) {
+              // Destroy the marble if it doesn't match the tile configuration
+              marbleImage.destroy();
+              //console.log('Destroyed: ', marbleImage);
+              return false; // Remove the marble from the array
+            }
           }
         }
       }
@@ -228,7 +309,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago-b25ac50cd7d5.herokuapp.com');
+    this.socket = new WebSocket('ws://localhost:443');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
@@ -270,12 +351,12 @@ class GameScene extends Phaser.Scene {
           serial += '';
         }
         if (count < 1){
-          this.add.text(270, 490, serial, textStyle4);
+          this.add.text(270, 530, serial, textStyle4);
           count++;
         }
         if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
-          this.add.text(270, 537, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
-          this.add.text(270, 577, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
+          this.add.text(270, 577, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
+          this.add.text(270, 617, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
           serial = '';
           flag++;
         }
@@ -283,7 +364,7 @@ class GameScene extends Phaser.Scene {
   
       // Handles the data if the game ends and takes the screenshot of the current game-board
       if (data.type === 'end') {
-        captureGameBoard(this, offset_x - 284, offset_y - 284, 580, 580).then(gameBoardScreenshot => {
+        captureGameBoard(this, offset_x - 284, offset_y - 244, 580, 580).then(gameBoardScreenshot => {
           sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
       
           if (data.result === 'win') {
@@ -432,8 +513,8 @@ class GameScene extends Phaser.Scene {
       "quarter_board",
       "data/assets/img/quarter_board.png",
       {
-        frameWidth: 284,
-        frameHeight: 284
+        frameWidth: 281,
+        frameHeight: 281
       }
     );
 
@@ -555,17 +636,14 @@ class GameScene extends Phaser.Scene {
        "data/assets/audio/quarter_rotation_sfx.mp3"
     );
   }
-  
+
   create() {
     /* Inits variables, defines animations, sounds, displays assets, handles clicks */
     const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
+    const offset_y = this.cameras.main.height / 2;
     const dx = offset_x - 283;
     const dy = offset_y - 283;
-    const q1_coord = (offset_x - 142 + 0.75, offset_y - 142 + 0.75);
-    const q2_coord = (offset_x + 142 + 0.75, offset_y + 142 + 0.75);
-    const q3_coord = (offset_x - 142 + 0.75, offset_y + 142 + 0.75);
-    const q4_coord = (offset_x + 142 + 0.75, offset_y - 142 + 0.75);
+
     const marble_placement_sfx = this.sound.add('marble_placement');
     const quarter_rotation_sfx = this.sound.add('quarter_rotation');
 
@@ -575,6 +653,7 @@ class GameScene extends Phaser.Scene {
     this.marbles = [];
     this.has_placed = false;
     this.has_selected_q = false;
+    this.has_rotated = false;
     this.first_move = true;
     this.alpha = 0;
     this.bo = new Board(566, 566);
@@ -583,17 +662,16 @@ class GameScene extends Phaser.Scene {
     this.serial_key = '';
     this.handlersSet = false;
     this.connect();
-    this.counterClockwiseBtn = new Phaser.Geom.Rectangle(780 - 40, 685 - 40, 84, 84);
-    this.clockwiseBtn = new Phaser.Geom.Rectangle(885 - 40, 685 - 40, 84, 84);
-    this.copykeyBtn = new Phaser.Geom.Rectangle(270, 490, 250, 20);
+
+    this.copykeyBtn = new Phaser.Geom.Rectangle(270, 530, 250, 20);
     this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
     this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
     this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
     this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
-    this.p1Text = this.add.text(1080, 250, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
-    this.p2Text = this.add.text(1105, 50, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
-    this.statusText = this.add.text(this.cameras.main.width / 2, 700, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
-    this.waitingText = this.add.text(this.cameras.main.width / 2, 100, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.p1Text = this.add.text(1080, 330, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
+    this.p2Text = this.add.text(1105, 130, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
+    this.statusText = this.add.text(this.cameras.main.width / 2, 740, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.waitingText = this.add.text(this.cameras.main.width / 2, 140, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
     this.move = '';
     this.string_color = '';
     this.moon = null;
@@ -605,208 +683,103 @@ class GameScene extends Phaser.Scene {
     this.p2 = null;
 
     // GUI initialization
-    this.time_label = this.add.image(400, 130, 'time_label');
-    this.timerText1 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
-    this.timerText2 = this.add.text(375, 115, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
-    this.add.image(395, 570, 'names');
-    this.add.image(780, 685, 'rc_on');
-    this.add.image(885, 685, 'ra_on');
+    this.time_label = this.add.image(400, 170, 'time_label');
+    this.timerText1 = this.add.text(375, 155, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.timerText2 = this.add.text(375, 155, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
+    this.add.image(395, 610, 'names');
+
     // Board blitting
-    this.add.image(offset_x, offset_y, 'white_square');
-    this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
-    this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
-    this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board');
-    this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board');
+    this.white_square = this.add.image(offset_x, offset_y, 'white_square');
 
-    const textStyle = {
-      fontFamily: 'Arial',
-      fontSize: 30,
-      color: '#FFFFFF'
-    };
+    this.q1 = this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board'); // TOP-LEFT
+    this.q2 = this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board'); // TOP-RIGHT
+    this.q3 = this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board'); // BOTTOM-LEFT
+    this.q4 = this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board'); // BOTTOM-RIGHT
 
-    const textStyle2 = {
-      fontFamily: 'Arial',
-      fontSize: 50,
-      color: '#FFFFFF'
-    };
+    const q1_coords = [[offset_x - 284, offset_y - 284],[offset_x, offset_y]];
+    const q2_coords = [[offset_x + 284, offset_y - 284],[offset_x, offset_y]];
+    const q3_coords = [[offset_x - 284, offset_y + 284],[offset_x, offset_y]];
+    const q4_coords = [[offset_x + 284, offset_y + 284],[offset_x, offset_y]];
 
-    const textStyle3 = {
-      fontFamily: 'Arial',
-      fontSize: 15,
-      color: '#FFFFFF'
-    };
+    this.quadrants = [q1_coords, q2_coords, q3_coords, q4_coords];
+    this.quadrants_drawings = [this.q1, this.q2, this.q3, this.q4];
 
-    const textStyle4 = {
-      fontFamily: 'Arial',
-      fontSize: 23,
-      color: '#FFFFFF'
-    };
+    this.draggingQuadrant = null;
+    this.isDragging = false;
 
-    const textStyle5 = {
-      fontFamily: 'Arial',
-      fontSize: 18,
-      fontStyle: 'italic',
-      color: '#FFFFFF',
-      wordWrap: { width: 310 }
-    };
-
-    /*
-    COMING SOON - MOVE LOG
-    var graphics = this.make.graphics();
-    graphics.fillRect(1195, 495, 260, 318);
-    var mask = new Phaser.Display.Masks.GeometryMask(this, graphics);
-    this.log_text = this.add.text(1080, 350, '', textStyle5); //.setOrigin(0);
-    this.log_text.setMask(mask);
-    var zone = this.add.zone(1195, 495, 260, 318).setInteractive(); //.setOrigin(0)
-    */
+    // Making the quadrant images interactive and enabling drag-and-drop
+    this.quadrants_drawings.forEach((quadrantImage, index) => {
+      quadrantImage.setInteractive({ draggable: true });
+      quadrantImage.setOrigin(0.5, 0.5);
     
-
-    // Animations and sprites
-    /*
-    this.anims.create({
-      key: 'time_flowing',
-      frames: this.anims.generateFrameNumbers('timer', { frames: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }),
-      frameRate: 8,
-      repeat: -1
+      quadrantImage.on('pointerdown', (pointer) => {
+        if (this.has_placed && !this.has_rotated) {
+            this.isDragging = true;
+            this.draggingQuadrant = {index: this.getQuadrantIndex(pointer.x, pointer.y), initialX: pointer.x, initialY: pointer.y};
+        }
+      });
+    
+      quadrantImage.on('pointermove', (pointer) => {
+        if (this.isDragging && this.draggingQuadrant) {
+          let angle = this.calculateRotationAngle(pointer);
+          angle = Phaser.Math.Clamp(angle, -90, 90);
+          this.rotateQuadrantVisual(this.draggingQuadrant.index, angle);
+          this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), angle);
+        }
+      });
+    
+      quadrantImage.on('pointerup', (pointer) => {
+        if (this.isDragging && this.draggingQuadrant) {
+          this.isDragging = false;
+          let angle = this.calculateRotationAngle(pointer);
+          const clockwise = angle > 0;
+          this.alpha = clockwise ? -1 : 1; // 1 CW
+          const angleThreshold = 45; // Threshold in degrees
+          if (Math.abs(angle) >= angleThreshold) {
+            quarter_rotation_sfx.play();
+            this.socket.send(JSON.stringify({ type: 'quarter', q: this.draggingQuadrant.index, alpha: this.alpha}));
+            this.bo.rotate(this.draggingQuadrant.index, this.alpha)
+            this.revertRotation();
+            this.has_rotated = true;
+          } else {
+            this.revertRotation();
+          }
+          this.draggingQuadrant = null;
+        }
+      });
     });
-    const timer_sprite = this.add.sprite(1120, 160, 'timer');
-    timer_sprite.setScale(0.7);
-    timer_sprite.play('time_flowing');
-    */
-  
-    // Register event listeners
+
+    // pointerup
     this.input.on('pointerup', (pointer) => {
-      //console.log('[DEBUG] THIS BO CONFIG RIGHT BEFORE CLICKING: ', this.bo.config);
-      //console.log('[DEBUG] Click event captured:', pointer.x, pointer.y);
-      //console.log('[DBEUG] this.color:', this.color);
-      //console.log('[DEBUG] this.bo.ready:', this.bo.ready);
       if (this.game_state_received && this.color !== 's' && this.bo.ready) {
-        //console.log('[DEBUG] Passed the first condition');
         if (this.color === this.bo.turn) {
-          //console.log('[DEBUG] Passed the second condition');
           const pos = { x: pointer.x, y: pointer.y };
           if (pos.x >= offset_x - 284 && pos.x <= offset_x + 284 && pos.y >= offset_y - 284 && pos.y <= offset_y + 284) {
             marble_placement_sfx.play();
-            console.log('[DEBUG] Passed the third condition');
-            console.log("[GAME] Game state:");
-            console.log("[GAME] this.has_placed:", this.has_placed);
-            console.log("[GAME] this.has_selected_q:", this.has_selected_q);
-            console.log("[GAME] this.q:", this.q);
-            console.log("[GAME] this.alpha:", this.alpha);
-            console.log("[GAME] this.color:", this.color);
-            console.log("[GAME] this.bo.ready:", this.bo.ready);
-            console.log("[GAME] this.bo.turn:", this.bo.turn);
             console.log("[GAME] this.bo.config: ", this.bo.config);
             if (!this.has_placed) {
-              console.log('[DEBUG] has placed');
-              console.log('[GAME] pos: ', pos)
               const [i, j] = this.bo.handle_click(pos, this.color, dx, dy);
-              console.log("[DEBUG] j: ", i);
-              console.log("[DEBUG] i: ", j);
-              console.log('[DEBUG] ij: ', this.bo.config[j][i]);
-              
-              // Check if the cell is empty
               if (this.bo.config[j][i] === '-1') {
                 this.socket.send(JSON.stringify({ type: 'select', i, j, color: this.color }));
                 console.log('[GAME] Data sent to server (select):', { type: 'select', i, j, color: this.color });
                 this.has_placed = true;
-                this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
               } else {
                 console.log('[GAME] Warning! invalid placement, please select a free cell');
                 this.has_placed = false;
               }
-            } else {
-              this.q = this.bo.get_quarter_from_pos(pos, dx, dy);
-              // Displays the value of the quarter based on the value of q
-              if (this.q === 1) {
-                if (this.hover_1) {
-                  this.hover_1.destroy();
-                }
-                if (this.hover_2) {
-                  this.hover_2.destroy();
-                }
-                if (this.hover_3) {
-                  this.hover_3.destroy();
-                }
-                if (this.hover_4) {
-                  this.hover_4.destroy();
-                }
-                this.hover_1 = this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'select_1');
-              } else if (this.q === 2) {
-                if (this.hover_1) {
-                  this.hover_1.destroy();
-                }
-                if (this.hover_2) {
-                  this.hover_2.destroy();
-                }
-                if (this.hover_3) {
-                  this.hover_3.destroy();
-                }
-                if (this.hover_4) {
-                  this.hover_4.destroy();
-                }
-                this.hover_2 = this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'select_2');
-              } else if (this.q === 3) {
-                if (this.hover_1) {
-                  this.hover_1.destroy();
-                }
-                if (this.hover_2) {
-                  this.hover_2.destroy();
-                }
-                if (this.hover_3) {
-                  this.hover_3.destroy();
-                }
-                if (this.hover_4) {
-                  this.hover_4.destroy();
-                }
-                this.hover_3 = this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'select_3');
-              } else if (this.q === 4) {
-                if (this.hover_1) {
-                  this.hover_1.destroy();
-                }
-                if (this.hover_2) {
-                  this.hover_2.destroy();
-                }
-                if (this.hover_3) {
-                  this.hover_3.destroy();
-                }
-                if (this.hover_4) {
-                  this.hover_4.destroy();
-                }
-                this.hover_4 = this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'select_4');
-              }
-              this.tweens.add({
-                targets: this.hover_1,
-                alpha: 0.25,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-              this.tweens.add({
-                targets: this.hover_2,
-                alpha: 0.25,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-              this.tweens.add({
-                targets: this.hover_3,
-                alpha: 0.25,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-              this.tweens.add({
-                targets: this.hover_4,
-                alpha: 0.25,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-
-              console.log("[GAME] Has selected quarter: ", this.q)
-              this.has_selected_q = true;
             }
+          if (this.has_placed && this.has_rotated && this.alpha !== 0){
+            this.has_placed = false;
+            this.has_selected_q = false;
+            this.first_move = true;
+            this.alpha = 0;
+            this.q = null;
+            this.draggingQuadrant = null;
+            this.has_rotated = false;
+
+            this.clear_marble();
+            this.draw_marble();
+          }         
           }
         }
       }
@@ -819,108 +792,21 @@ class GameScene extends Phaser.Scene {
         tempInput.select();
         document.execCommand("copy");
         document.body.removeChild(tempInput);
-        this.cp_warning = this.add.text(310, 460, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
+        this.cp_warning = this.add.text(310, 500, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
         var cp_delay = 1000;
         this.time.delayedCall(cp_delay, function() {
             this.cp_warning.destroy();
         }, [], this);
       }
-
-      // Clockwise rotation
-      if (Phaser.Geom.Rectangle.Contains(this.clockwiseBtn, pointer.x, pointer.y)) {
-        console.log('[GAME] Clockwise rotation event captured');
-        if (this.has_placed === true && this.q !== null) {
-          this.alpha = 1;
-          console.log(this.alpha);
-        }
-        console.log('[GAME] Pass turn event captured');
-        if (this.alpha !== 0) {
-          if (this.color === this.bo.turn && this.bo.ready && this.q !== null) {
-            quarter_rotation_sfx.play();
-            this.socket.send(JSON.stringify({ type: 'quarter', q: this.q, alpha: this.alpha }));
-            console.log('[GAME] Data sent to server (quarter):', { type: 'quarter', q: this.q, alpha: this.alpha });
-            this.has_placed = false;
-            this.has_selected_q = false;
-            this.first_move = true;
-            this.alpha = 0;
-            this.q = null;
-            if (this.hover_1) {
-              this.hover_1.destroy();
-            }
-            if (this.hover_2) {
-              this.hover_2.destroy();
-            }
-            if (this.hover_3) {
-              this.hover_3.destroy();
-            }
-            if (this.hover_4) {
-              this.hover_4.destroy();
-            }
-            if (this.p1) {
-              this.p1.destroy();
-            }
-            if (this.p2) {
-              this.p2.destroy();
-            }
-          }
-        }
-      }
-    
-      // Counterclockwise rotation
-      if (Phaser.Geom.Rectangle.Contains(this.counterClockwiseBtn, pointer.x, pointer.y)) {
-        console.log('[GAME] Counterclockwise rotation event captured');
-        if (this.has_placed === true && this.q !== null) {
-          this.alpha = -1;
-          console.log(this.alpha);
-        }
-        console.log('[GAME] Pass turn event captured');
-        if (this.alpha !== 0) {
-          if (this.color === this.bo.turn && this.bo.ready && this.q !== null) {
-            this.socket.send(JSON.stringify({ type: 'quarter', q: this.q, alpha: this.alpha }));
-            console.log('[GAME] Data sent to server (quarter):', { type: 'quarter', q: this.q, alpha: this.alpha });
-            this.has_placed = false;
-            this.has_selected_q = false;
-            this.first_move = true;
-            this.alpha = 0;
-            this.q = null;
-            if (this.hover_1) {
-              this.hover_1.destroy();
-            }
-            if (this.hover_2) {
-              this.hover_2.destroy();
-            }
-            if (this.hover_3) {
-              this.hover_3.destroy();
-            }
-            if (this.hover_4) {
-              this.hover_4.destroy();
-            }
-          }
-        }
-      }
     });
-
-    /*
-    COMING SOON - MOVE LOG
-    zone.on('pointermove', function (pointer) {
-      if (pointer.isDown)
-      {
-          this.log_text.y += (pointer.velocity.y / 10);
-
-          this.log_text.y = Phaser.Math.Clamp(text.y, -400, 300);
-      }
-
-    });
-    */
   }
-  
+    
   update() {
     /* Loops the attributes of various game objects per game logic */
     console.log(this.width);
     if (this.gameStateUpdated) {
       this.gameStateUpdated = false;
       console.log('[GAME] Game state is updated');
-      console.log("winner: ", this.bo.winner);
       this.clear_marble();
       this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
       this.updateDisplayedTimers(this.bo.timers, this.color);
@@ -948,13 +834,17 @@ class GameScene extends Phaser.Scene {
 const config = {
   width: 1366,
   height: 768,
-  backgroundColor: "#232323",
+  backgroundColor: "#262323",
   parent: "gameContainer",
   scale: {
     // Fit to window
     mode: Phaser.Scale.FIT,
     // Center vertically and horizontally
     autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  render: {
+    antialias: true, // Enable anti-aliasing
+    pixelArt: false // Set to false to avoid pixelated graphics
   },
   scene: [GameScene],
 };
