@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-62c1232b3105.herokuapp.com';
+const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -91,7 +91,7 @@ class GameScene extends Phaser.Scene {
   }
 
   getQuadrantIndex(x, y) {
-    const centerX = this.cameras.main.width / 2 + 150;
+    const centerX = this.cameras.main.width / 2 + 150 * 1.406;
     const centerY = this.cameras.main.height / 2;
 
     const relativeX = x - centerX;
@@ -168,8 +168,8 @@ class GameScene extends Phaser.Scene {
   }
     
   redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
-    scene.cameras.main.setBackgroundColor('#201f1f');
-    const offset_x = this.cameras.main.width / 2 + 150;
+    scene.cameras.main.setBackgroundColor('#191818');
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
 
     /* GUI */
@@ -187,7 +187,7 @@ class GameScene extends Phaser.Scene {
 
     const textStyle3 = {
       fontFamily: 'Arial',
-      fontSize: 18,
+      fontSize: 22,
       color: '#FFFFFF'
     };
 
@@ -204,35 +204,35 @@ class GameScene extends Phaser.Scene {
     };
 
     if (bo.turn === '0') {
-      scene.time_label = this.add.image(308, 170, 'white_label')
+      scene.time_label = this.add.image(320* 1.406, 170* 1.406, 'white_label')
     }
     else if (bo.turn === '1') {
-      scene.time_label = this.add.image(308, 170, 'black_label')
+      scene.time_label = this.add.image(320* 1.406, 170* 1.406, 'black_label')
     }
 
     if (!has_placed && bo.turn === color && ready) {
-      scene.add.image(850, 70, 'message');
-      const has_placed_text = scene.add.text(705, 60, 'Click on the board to place a marble', textStyle3);
+      scene.add.image(850* 1.406, 70* 1.406, 'message');
+      const has_placed_text = scene.add.text(705* 1.406, 60* 1.406, 'Click on the board to place a marble', textStyle3);
     }
     else if (has_placed && !has_selected_q && bo.turn === color && ready) {
-      scene.add.image(850, 70, 'message');
-      const has_placed_text = scene.add.text(650, 60, 'Click on the board to select a quadrant and rotate it', textStyle3);
+      scene.add.image(850* 1.406, 70* 1.406, 'message');
+      const has_placed_text = scene.add.text(650* 1.406, 60* 1.406, 'Click on the board to select a quadrant and rotate it', textStyle3);
     }
     else if (!has_placed && bo.turn !== color || !ready) {
-      scene.add.image(850, 70, 'message');
-      const has_placed_text = scene.add.text(766, 60, 'Waiting for player', textStyle3);
+      scene.add.image(850* 1.406, 70* 1.406, 'message');
+      const has_placed_text = scene.add.text(766* 1.406, 60* 1.406, 'Waiting for player', textStyle3);
     }
   }
 
   draw_marble() {
     /* Draw new marbles on the board */
-    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
   
     for (let l = 0; l < 6; l++) {
       for (let m = 0; m < 6; m++) {
-        let x = (l === 1 || l === 4) ? offset_x - 236 - 0.15 + 94.6 * m : offset_x - 236 + 94.6 * m;
-        let y = offset_y - 236 + 94.6 * l;
+        let x = (l === 1 || l === 4) ? offset_x - 236* 1.406 - 0.15* 1.406 + 94.6* 1.406 * m : offset_x - 236* 1.406 + 94.6* 1.406 * m;
+        let y = offset_y - 236* 1.406 + 94.6* 1.406 * l;
         let marbleType = '';
         if (this.bo.config[l][m] === '0') {
           marbleType = 'p1';
@@ -268,15 +268,15 @@ class GameScene extends Phaser.Scene {
 
   clear_marble() {
     /* Clears the mismatching marbles' drawings from the board */
-    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
   
     this.marbles = this.marbles.filter(([marbleImage, coords, player, quadrant]) => {
       for (let l = 0; l < 6; l++) {
         for (let m = 0; m < 6; m++) {
           const coord = (l === 1 || l === 4) ?
-            [offset_x - 236 - 0.15 + 94.6 * m, offset_y - 236 + 94.6 * l] :
-            [offset_x - 236 + 94.6 * m, offset_y - 236 + 94.6 * l];
+            [offset_x - 236 * 1.406- 0.15 * 1.406+ 94.6 * 1.406* m, offset_y - 236* 1.406 + 94.6* 1.406 * l] :
+            [offset_x - 236* 1.406 + 94.6* 1.406 * m, offset_y - 236* 1.406 + 94.6* 1.406 * l];
           
           if (coords[0] === coord[0] && coords[1] === coord[1]) {
             if (this.bo.config[l][m] === '-1') {
@@ -299,8 +299,8 @@ class GameScene extends Phaser.Scene {
   
   connect() {
     /* Implement client-side connection and data handling */
-    const offset_x = this.cameras.main.width / 2 + 150;
-    const offset_y = this.cameras.main.height / 2 - 40;
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
+    const offset_y = this.cameras.main.height / 2 - 40* 1.406;
     const initialConnectionMessage = {
       type: 'initialConnection',
       playerName: playername,
@@ -309,7 +309,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago-62c1232b3105.herokuapp.com');
+    this.socket = new WebSocket('ws://localhost:443');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
@@ -339,7 +339,7 @@ class GameScene extends Phaser.Scene {
 
       const textStyle4 = {
         fontFamily: 'Arial',
-        fontSize: 23,
+        fontSize: 30,
         color: '#FFFFFF'
       };
 
@@ -351,12 +351,12 @@ class GameScene extends Phaser.Scene {
           serial += '';
         }
         if (count < 1){
-          this.add.text(270, 530, serial, textStyle4);
+          this.add.text(280* 1.406, 530* 1.406, serial, textStyle4);
           count++;
         }
         if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
-          this.add.text(270, 577, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#000000'});
-          this.add.text(270, 617, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 23, color: '#FFFFFF'});
+          this.add.text(270* 1.406, 577* 1.406, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#000000'});
+          this.add.text(270* 1.406, 617* 1.406, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF'});
           serial = '';
           flag++;
         }
@@ -364,7 +364,7 @@ class GameScene extends Phaser.Scene {
   
       // Handles the data if the game ends and takes the screenshot of the current game-board
       if (data.type === 'end') {
-        captureGameBoard(this, offset_x - 284, offset_y - 244, 580, 580).then(gameBoardScreenshot => {
+        captureGameBoard(this, offset_x - 284* 1.406, offset_y - 244* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
           sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
       
           if (data.result === 'win') {
@@ -432,8 +432,8 @@ class GameScene extends Phaser.Scene {
       "title",
       "data/assets/img/title_game.png",
       {
-        frameWidth: 137,
-        frameHeight: 40
+        frameWidth: 137* 1.406,
+        frameHeight: 40* 1.406
       }
     );
     
@@ -441,8 +441,8 @@ class GameScene extends Phaser.Scene {
       "time_label",
       "data/assets/img/time_label.png",
       {
-        frameWidth: 200,
-        frameHeight: 95
+        frameWidth: 200* 1.406,
+        frameHeight: 95* 1.406
       }
     );
 
@@ -450,8 +450,8 @@ class GameScene extends Phaser.Scene {
       "key_label",
       "data/assets/img/key_label.png",
       {
-        frameWidth: 320,
-        frameHeight: 40
+        frameWidth: 320* 1.406,
+        frameHeight: 40* 1.406
       }
     );
 
@@ -459,8 +459,8 @@ class GameScene extends Phaser.Scene {
       "white_label",
       "data/assets/img/white_label.png",
       {
-        frameWidth: 200,
-        frameHeight: 30
+        frameWidth: 200* 1.406,
+        frameHeight: 30* 1.406
       }
     );
 
@@ -468,8 +468,8 @@ class GameScene extends Phaser.Scene {
       "black_label",
       "data/assets/img/black_label.png",
       {
-        frameWidth: 200,
-        frameHeight: 30
+        frameWidth: 200* 1.406,
+        frameHeight: 30* 1.406
       }
     );
 
@@ -477,8 +477,8 @@ class GameScene extends Phaser.Scene {
       "timer",
       "data/assets/img/timer.png",
       {
-        frameWidth: 72.4,
-        frameHeight: 72,
+        frameWidth: 72.4* 1.406,
+        frameHeight: 72* 1.406,
       }
     );
 
@@ -486,8 +486,8 @@ class GameScene extends Phaser.Scene {
       "message",
       "data/assets/img/message_label.png",
       {
-        frameWidth: 450,
-        frameHeight: 30,
+        frameWidth: 450* 1.406,
+        frameHeight: 30* 1.406,
       }
     );
 
@@ -495,8 +495,8 @@ class GameScene extends Phaser.Scene {
       "p1",
       "data/assets/img/p1.png",
       {
-        frameWidth: 47,
-        frameHeight: 47
+        frameWidth: 47* 1.406,
+        frameHeight: 47* 1.406
       }
     );
 
@@ -504,8 +504,8 @@ class GameScene extends Phaser.Scene {
       "p2",
       "data/assets/img/p2.png",
       {
-        frameWidth: 47,
-        frameHeight: 47
+        frameWidth: 47* 1.406,
+        frameHeight: 47* 1.406
       }
     );
 
@@ -513,8 +513,8 @@ class GameScene extends Phaser.Scene {
       "quarter_board",
       "data/assets/img/quarter_board.png",
       {
-        frameWidth: 281,
-        frameHeight: 281
+        frameWidth: 395,
+        frameHeight: 395
       }
     );
 
@@ -522,8 +522,8 @@ class GameScene extends Phaser.Scene {
       "white_square",
       "data/assets/img/white_square.png",
       {
-        frameWidth: 80,
-        frameHeight: 80
+        frameWidth: 80* 1.406,
+        frameHeight: 80* 1.406
       }
     );
 
@@ -531,8 +531,8 @@ class GameScene extends Phaser.Scene {
       "pass_on",
       "data/assets/img/pass_on.png",
       {
-        frameWidth: 203,
-        frameHeight: 123
+        frameWidth: 203* 1.406,
+        frameHeight: 123* 1.406
       }
     )
 
@@ -540,8 +540,8 @@ class GameScene extends Phaser.Scene {
       "ra_on",
       "data/assets/img/ra_on.png",
       {
-        frameWidth: 84,
-        frameHeight: 84
+        frameWidth: 84* 1.406,
+        frameHeight: 84* 1.406
       }
     )
 
@@ -549,8 +549,8 @@ class GameScene extends Phaser.Scene {
       "rc_on",
       "data/assets/img/rc_on.png",
       {
-        frameWidth: 84,
-        frameHeight: 84
+        frameWidth: 84* 1.406,
+        frameHeight: 84* 1.406
       }
     )
 
@@ -558,8 +558,8 @@ class GameScene extends Phaser.Scene {
       "widget",
       "data/assets/img/widget_label.png",
       {
-        frameWidth: 432,
-        frameHeight: 260
+        frameWidth: 432* 1.406,
+        frameHeight: 260* 1.406
       }
     )
 
@@ -567,8 +567,8 @@ class GameScene extends Phaser.Scene {
       "control",
       "data/assets/img/control_label.png",
       {
-        frameWidth: 275,
-        frameHeight: 315
+        frameWidth: 275* 1.406,
+        frameHeight: 315* 1.406
       }
     )
 
@@ -576,8 +576,8 @@ class GameScene extends Phaser.Scene {
       "moon",
       "data/assets/img/moon.png",
       {
-        frameWidth: 21,
-        frameHeight: 30
+        frameWidth: 21* 1.406,
+        frameHeight: 30* 1.406
       }
     )
 
@@ -585,8 +585,8 @@ class GameScene extends Phaser.Scene {
       "select_1",
       "data/assets/img/select_1.png",
       {
-        frameWidth: 295,
-        frameHeight: 295
+        frameWidth: 295* 1.406,
+        frameHeight: 295* 1.406
       }
     )
 
@@ -594,8 +594,8 @@ class GameScene extends Phaser.Scene {
       "select_2",
       "data/assets/img/select_2.png",
       {
-        frameWidth: 295,
-        frameHeight: 295
+        frameWidth: 295* 1.406,
+        frameHeight: 295* 1.406
       }
     )
 
@@ -603,8 +603,8 @@ class GameScene extends Phaser.Scene {
       "select_3",
       "data/assets/img/select_3.png",
       {
-        frameWidth: 295,
-        frameHeight: 295
+        frameWidth: 295* 1.406,
+        frameHeight: 295* 1.406
       }
     )
 
@@ -612,8 +612,8 @@ class GameScene extends Phaser.Scene {
       "select_4",
       "data/assets/img/select_4.png",
       {
-        frameWidth: 295,
-        frameHeight: 295
+        frameWidth: 295* 1.406,
+        frameHeight: 295* 1.406
       }
     )
 
@@ -621,8 +621,8 @@ class GameScene extends Phaser.Scene {
       "names",
       "data/assets/img/names.png",
       {
-        frameWidth: 280,
-        frameHeight: 80,
+        frameWidth: 280* 1.406,
+        frameHeight: 80* 1.406,
       }
     )
              
@@ -639,16 +639,16 @@ class GameScene extends Phaser.Scene {
 
   create() {
     /* Inits variables, defines animations, sounds, displays assets, handles clicks */
-    const offset_x = this.cameras.main.width / 2 + 150;
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
-    const dx = offset_x - 283;
-    const dy = offset_y - 283;
+    const dx = offset_x - 283* 1.406;
+    const dy = offset_y - 283* 1.406;
 
     const marble_placement_sfx = this.sound.add('marble_placement');
     const quarter_rotation_sfx = this.sound.add('quarter_rotation');
 
     this.updateCounter = 0;
-    this.cameras.main.setBounds(0, 0, 1366, 768);
+    this.cameras.main.setBounds(0, 0, 1920, 1080);
     this.count = 0;
     this.marbles = [];
     this.has_placed = false;
@@ -656,22 +656,22 @@ class GameScene extends Phaser.Scene {
     this.has_rotated = false;
     this.first_move = true;
     this.alpha = 0;
-    this.bo = new Board(566, 566);
+    this.bo = new Board(566* 1.406, 566* 1.406);
     this.name = 'player';
     this.running = true;
     this.serial_key = '';
     this.handlersSet = false;
     this.connect();
 
-    this.copykeyBtn = new Phaser.Geom.Rectangle(270, 530, 250, 20);
-    this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
-    this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
-    this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 284, 284);
-    this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 284, 284);
-    this.p1Text = this.add.text(1080, 330, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
-    this.p2Text = this.add.text(1105, 130, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
-    this.statusText = this.add.text(this.cameras.main.width / 2, 740, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
-    this.waitingText = this.add.text(this.cameras.main.width / 2, 140, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.copykeyBtn = new Phaser.Geom.Rectangle(270* 1.406, 530* 1.406, 250* 1.406, 20* 1.406);
+    this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142* 1.406 + 0.75, offset_y - 142* 1.406 + 0.75, 284* 1.406, 284* 1.406);
+    this.q2Btn = new Phaser.Geom.Rectangle(offset_x + 142* 1.406 + 0.75, offset_y + 142* 1.406 + 0.75, 284* 1.406, 284* 1.406);
+    this.q3Btn = new Phaser.Geom.Rectangle(offset_x - 142* 1.406 + 0.75, offset_y + 142* 1.406 + 0.75, 284* 1.406, 284* 1.406);
+    this.q4Btn = new Phaser.Geom.Rectangle(offset_x + 142* 1.406 + 0.75, offset_y - 142* 1.406 + 0.75, 284* 1.406, 284* 1.406);
+    this.p1Text = this.add.text(1080* 1.406, 330* 1.406, '', { fontFamily: 'Arial', fontSize: 30, color: '#000000' });
+    this.p2Text = this.add.text(1105* 1.406, 130* 1.406, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' });
+    this.statusText = this.add.text(this.cameras.main.width / 2, 740* 1.406, '', { fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF' }).setOrigin(0.5, 0);
+    this.waitingText = this.add.text(this.cameras.main.width / 2, 140* 1.406, '', { fontFamily: 'Arial', fontSize: 50, color: '#FFFFFF' }).setOrigin(0.5, 0);
     this.move = '';
     this.string_color = '';
     this.moon = null;
@@ -683,23 +683,23 @@ class GameScene extends Phaser.Scene {
     this.p2 = null;
 
     // GUI initialization
-    this.time_label = this.add.image(400, 170, 'time_label');
-    this.timerText1 = this.add.text(375, 155, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
-    this.timerText2 = this.add.text(375, 155, '', { fontFamily: 'Arial', fontSize: "30px", color: "#FFFFFF" });
-    this.add.image(395, 610, 'names');
+    this.time_label = this.add.image(420* 1.406, 170* 1.406, 'time_label');
+    this.timerText1 = this.add.text(400* 1.406, 155* 1.406, '', { fontFamily: 'Arial', fontSize: "40px", color: "#FFFFFF" });
+    this.timerText2 = this.add.text(400* 1.406, 155* 1.406, '', { fontFamily: 'Arial', fontSize: "40px", color: "#FFFFFF" });
+    this.add.image(395* 1.406, 610* 1.406, 'names');
 
     // Board blitting
     this.white_square = this.add.image(offset_x, offset_y, 'white_square');
 
-    this.q1 = this.add.image(offset_x - 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board'); // TOP-LEFT
-    this.q2 = this.add.image(offset_x + 142 + 0.75, offset_y - 142 + 0.75, 'quarter_board'); // TOP-RIGHT
-    this.q3 = this.add.image(offset_x - 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board'); // BOTTOM-LEFT
-    this.q4 = this.add.image(offset_x + 142 + 0.75, offset_y + 142 + 0.75, 'quarter_board'); // BOTTOM-RIGHT
+    this.q1 = this.add.image(offset_x - 200 + 0.75, offset_y - 200 + 0.75, 'quarter_board'); // TOP-LEFT
+    this.q2 = this.add.image(offset_x + 200 + 0.75, offset_y - 200 + 0.75, 'quarter_board'); // TOP-RIGHT
+    this.q3 = this.add.image(offset_x - 200 + 0.75, offset_y + 200 + 0.75, 'quarter_board'); // BOTTOM-LEFT
+    this.q4 = this.add.image(offset_x + 200 + 0.75, offset_y + 200 + 0.75, 'quarter_board'); // BOTTOM-RIGHT
 
-    const q1_coords = [[offset_x - 284, offset_y - 284],[offset_x, offset_y]];
-    const q2_coords = [[offset_x + 284, offset_y - 284],[offset_x, offset_y]];
-    const q3_coords = [[offset_x - 284, offset_y + 284],[offset_x, offset_y]];
-    const q4_coords = [[offset_x + 284, offset_y + 284],[offset_x, offset_y]];
+    const q1_coords = [[offset_x - 284* 1.406, offset_y - 284* 1.406],[offset_x, offset_y]];
+    const q2_coords = [[offset_x + 284* 1.406, offset_y - 284* 1.406],[offset_x, offset_y]];
+    const q3_coords = [[offset_x - 284* 1.406, offset_y + 284* 1.406],[offset_x, offset_y]];
+    const q4_coords = [[offset_x + 284* 1.406, offset_y + 284* 1.406],[offset_x, offset_y]];
 
     this.quadrants = [q1_coords, q2_coords, q3_coords, q4_coords];
     this.quadrants_drawings = [this.q1, this.q2, this.q3, this.q4];
@@ -754,7 +754,7 @@ class GameScene extends Phaser.Scene {
       if (this.game_state_received && this.color !== 's' && this.bo.ready) {
         if (this.color === this.bo.turn) {
           const pos = { x: pointer.x, y: pointer.y };
-          if (pos.x >= offset_x - 284 && pos.x <= offset_x + 284 && pos.y >= offset_y - 284 && pos.y <= offset_y + 284) {
+          if (pos.x >= offset_x - 284* 1.406 && pos.x <= offset_x + 284* 1.406 && pos.y >= offset_y - 284* 1.406 && pos.y <= offset_y + 284* 1.406) {
             marble_placement_sfx.play();
             console.log("[GAME] this.bo.config: ", this.bo.config);
             if (!this.has_placed) {
@@ -792,7 +792,7 @@ class GameScene extends Phaser.Scene {
         tempInput.select();
         document.execCommand("copy");
         document.body.removeChild(tempInput);
-        this.cp_warning = this.add.text(310, 500, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
+        this.cp_warning = this.add.text(310* 1.406, 500* 1.406, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
         var cp_delay = 1000;
         this.time.delayedCall(cp_delay, function() {
             this.cp_warning.destroy();
@@ -832,8 +832,8 @@ class GameScene extends Phaser.Scene {
 
 /*---------------------------------------Web embedding setup---------------------------------------*/
 const config = {
-  width: 1366,
-  height: 768,
+  width: 1920,
+  height: 1080,
   backgroundColor: "#262323",
   parent: "gameContainer",
   scale: {
