@@ -538,8 +538,8 @@ class GameScene extends Phaser.Scene {
     this.q = null;
     this.draggingQuadrant = null;
     this.has_rotated = false;
-    this.clear_marble();
-    this.draw_marble();
+    //this.clear_marble();
+    //this.draw_marble();
   }
   
   preload(){
@@ -868,26 +868,9 @@ class GameScene extends Phaser.Scene {
             quarter_rotation_sfx.play();
             this.bo.rotate(this.draggingQuadrant.index, this.alpha)
             this.revertRotation();
-
+            this.clear_marble();
+            this.draw_marble();
             this.has_rotated = true;
-
-            this.winner = this.bo.check_winner();
-                if (this.winner !== '-1') {
-                console.log('GAMEEND')
-                captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
-                sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
-                if (this.winner === '0') {
-                setTimeout(() => {
-                  window.location.href = 'pentago-win.html';
-                }, 500);
-                } else {
-                setTimeout(() => {
-                  window.location.href = 'pentago-lose.html';
-                }, 500);
-              }
-            })
-            }
-            
           } else {
             this.revertRotation();
           }
@@ -919,6 +902,22 @@ class GameScene extends Phaser.Scene {
           }
 
           if (this.has_placed && this.has_rotated && this.alpha !== 0){
+              this.winner = this.bo.check_winner();
+              if (this.winner !== '-1') {
+                  console.log('GAMEEND')
+                  captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
+                  sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
+                  if (this.winner === '0') {
+                  setTimeout(() => {
+                    window.location.href = 'pentago-win.html';
+                  }, 500);
+                  } else {
+                    setTimeout(() => {
+                    window.location.href = 'pentago-lose.html';
+                    }, 500);
+                  }
+                })
+              }
               this.performAIMove();
           }         
       }
