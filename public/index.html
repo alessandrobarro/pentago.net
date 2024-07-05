@@ -1,206 +1,85 @@
-<!-- 
----------------------------------------
-           www.pentago.net
----------------------------------------
-
-https://github.com/basedryo/pentago.net
--->
-
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-      <title>Pentago.net</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="apple-touch-icon" sizes="180x180" href="data/assets/img/apple-touch-icon.png">
-      <link rel="icon" type="image/x-icon" href="/data/assets/img/favicon.png">
-      <link rel="stylesheet" href="index-style.css">
-      <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
-      <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
-      <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
-      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797" crossorigin="anonymous"></script>
-      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-      <script src="jQueryAssets/jquery-1.11.1.min.js"></script>
-      <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js"></script>
-      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797"
-     crossorigin="anonymous"></script>
-      <script type="text/javascript">
-        (function () {
-          emailjs.init("E4qHL5mAMjkm7U8Qa");
-        })();
-      </script>
-      <script>
-        function showTuPopup() {
-          var popup = document.getElementById("tu-myPopup");
-          popup.classList.toggle("show");
-        }
-      </script>
-    </head>
-  <body>
-    <div class="rotate-device" id="rotate-device">
-        <center>
-          <img src="data/assets/img/rotate.png">
-        </center>
-    </div>
-
-    <!-- MAIN PAGE MENU & TOOLBAR -->
-    <section class="toolbar" id="toolbar">
-      <div class="menu" id="menu">
-        <div class="home" id="home">
-          <a href="index.html" title="Homepage"><img src="data/assets/img/home.png" width="35px" height="35px"></a>
-        </div>
-        <div class="tutorial" id="tutorial">
-          <div class="tu-popup" onclick="showTuPopup()" title="Quick Tutorial">
-            <img src="data/assets/img/webinar.png" width="35px" height="35px">
-            <span class="tu-popuptext" id="tu-myPopup">
-              <img src="data/assets/img/tutorial.gif" height="150px" widht="150px">
-            </span>
-          </div>
-        </div>
-        <div class="info" id="info" title="Game Info">
-          <a href="info.html"><img src="data/assets/img/info.png" class="infoicon" id="infoicon" width="35px" height="35px"></a>
-        </div>
-        <div class="mail" id="mail" title="Contact Us">
-          <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support"><img src="data/assets/img/mail.png" class="mail" id="mail" width="35px" height="35px"></a>
-        </div>
-      </div>
-    </section>
-
-    <!-- MAIN PAGE MAIN SECTION -->
-    <section class="main" id="main">
-      <div class="container">
-        <img src="data/assets/img/title.PNG" class="title" id="title"/>
-        <br>
-        <div class="settings" id="settings">
-          <div class="pop" id="pop">
-            <input type="text" class="playername" id="playername" name="Name" placeholder="Enter your nickname" maxlength="12" required>
-            <img class="buttonImage" id="buttonImage" src="data/assets/img/public_game.PNG" alt="Image 1" onclick="toggleImage()" title="Gamemode: Public">
-            <br>
-            <br>
-            <div class="private-game-popup" id="private-game-popup">
-              <div class="private-game-popup-content">
-                <form id="g-form" class="g-form" onsubmit="event.preventDefault(); join_private_game();">
-                  <input class="formg" id="formg" type="text" placeholder="Room number" maxlength="6" required>
-                  <button type="submit" id="g-button" class="g-button">Join game</button>
-                </form>                
-                  <br>
-                  <a href="pentago-gamepage.html" target="_blank"><button id="c-button" class="c-button" onclick="setNickname(); create_private_game();">Create a custom game</button></a>
-                  <br>
-                  <span class="close" id="close" onclick="closePrivateGamePopup()">&times;</span>
-              </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pentago</title>
+    <link rel="stylesheet" href="index-style.css">
+    <script src="game-settings.js"></script>
+</head>
+<body>
+    <div class="main-content">
+        <div class="content-area">
+            <div class="text-content">
+                <h1 class="intro-title">Ready for a twist?</h1>
+                <p class="game-description">Pentago is a fast-paced strategy game where players aim to create a row of five marbles before their opponent can. The twist? After placing each marble, you'll have to twist one of the game's quadrants. Join a game now!</p>
+                <br>
+                <div class="buttons">
+                  <a href="#" onclick="startGamePublic(); return false;">
+                      <img src="data/assets/img/publicbtn.png" alt="Public Game" class="playbtn">
+                  </a>
+                  <a href="#" onclick="openPrivateGamePopup(); return false;">
+                    <img src="data/assets/img/privatebtn.png" alt="Play Private" class="playbtn">
+                  </a>
+                  <div class="button-container">
+                    <a href="#" onclick="toggleDifficultyOptions(); return false;">
+                        <img src="data/assets/img/aibtn.png" alt="AI Game" class="playbtn">
+                    </a>
+                    <div id="ai-difficulty-options" class="difficulty-options">
+                        <form id="difficulty-form">
+                            <label><input type="radio" name="difficulty" value="easy" checked> Easy</label><br>
+                            <label><input type="radio" name="difficulty" value="medium"> Medium</label><br>
+                            <label><input type="radio" name="difficulty" value="hard"> Hard</label><br>
+                            <button type="button" onclick="startGameAI()">Start Game</button>
+                        </form>
+                    </div>
+                </div>                                               
+              </div>              
             </div>
-          </div>
+            <img src="data/assets/img/boarddemo.png" alt="Pentago Game Demo" class="demo-img">
         </div>
-        <button class="playbtn" id="playbtn" style="background-image: url('data/assets/img/play_button.PNG');"></button>
-        <script>
-             let imageState = 1;
-             var gType = '0';
-             console.log("[DATA] Default gamemode is set to public: ", gType);
-             function toggleImage() {
-               const buttonImage = document.getElementById('buttonImage');
-               if (imageState === 1) {
-                 buttonImage.src = 'data/assets/img/private_game.PNG';
-                 buttonImage.alt = 'Image 2';
-                 buttonImage.title = "Gamemode: Private";
-                 imageState = 2;
-                 gType = '1';
-                 console.log("[DATA] Gamemode changed to private: ", gType);
-               } else {
-                 buttonImage.src = 'data/assets/img/public_game.PNG';
-                 buttonImage.alt = 'Image 1';
-                 buttonImage.title = "Gamemode: Public";
-                 imageState = 1;
-                 gType = '0';
-                 console.log("[DATA] Gamemode changed to public: ", gType);
-               }
-             }
-
-             document.getElementById('playbtn').addEventListener('click', function (event) {
-               setNickname();
-               if (!nickname || nickname === '') {
-                 event.preventDefault();
-                 alert('Please enter a valid nickname.');
-                 return;
-               }
-               if (gType === '0') {
-                 play_public_game();
-                 window.open("pentago-gamepage.html", "_blank");
-               } else if (gType === '1') {
-                 openPrivateGamePopup();
-                 event.preventDefault();
-               }
-             });
-           </script>
-        <script>
-          function openPrivateGamePopup() {
-            event.preventDefault();
-            var popup = document.getElementById("private-game-popup");
-            popup.style.display = "block";
-            popup.style.position = "absolute";
-          }
-          function closePrivateGamePopup() {
-            event.preventDefault();
-            var popup = document.getElementById("private-game-popup");
-            popup.style.display = "none";
-          }
-        </script>
         <br>
-        <center>
-        <a><img src="data/assets/img/scroll_html.png" class="scrollbtn" id="scrollbtn" width="44" height="40" style="text-align: center; justify-content: center; align-items: center;" onclick="scrolldown()"/></a>
-        </center>
-        <script>
-          let mybutton = document.getElementById("scrollbtn");
-          window.onscroll = function() {scrollFunction()};
-          function scrollFunction() {
-            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-              mybutton.style.display = "none";
-            } else {
-              mybutton.style.display = "block";
-            }
-          }
-          function scrolldown() {
-            document.body.scrollTop = 1000;
-            document.documentElement.scrollTop = 1000;
-          }
-        </script>
-      </div>
-    </section>
-    <br>
-    <div class="footer-sub">
-      <div class="subscribe">
-        <h2 class="form-title" style="font-weight: bold; background-color: #787777">Subscribe to not miss any updates</h2>
-        <p class="form-sub-title">Get updates regarding the game state and new features in real time</p>
         <br>
-        <center>
-          <form id="sub-form">
-            <input class="form" type="text" placeholder="Your Name" id="subscribe_name" name="subscribe_name" required>
-            <input class="form" type="text" placeholder="email@example.com" id="subscribe_email" name="subscribe_email" required>
-            <input type="submit" id="button" value="Subscribe">
-          </form>           
-          <br>
-          <br>
-        </center>
+        <div class="info-box">
+            <h1>
+              "An award winning concept"
+            </h1>
+            <br>
+            <p>First invented by Tomas Flodén, the game was developed and commercialized in North-America by MindtwisterUSA, which preserves all the credits. Pentago has been recognized as Game of the Year in Sweden and France, between 2005 and 2006. Notably, in this last year, Pentago was accredited the Mensa Mind Games award. This platform was created by a sincere fan of the game's philosophy, in hopes of spreading it's notoriety among the next generations.</p>
+        </div>
+    </div>
+    <div id="side">
+        <img src="data/assets/img/title.PNG" class="title">
+        <a href="index.html"><p class="menu">Home</p></a>
+        <a href="index.html"><p class="menu">How to play</p></a>
+        <a href="index.html"><p class="menu">Community</p></a>
+        <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support"><p class="menu">Contact</p></a>
+        <a href="index.html"><p class="menu">Subscribe</p></a>
+        
+        <div class="copyright">
+          <!-- Social icons directly above the copyright text -->
+          <div class="social-icons">
+              <a href="#" target="_blank"><img src="data/assets/img/twitch.png" alt="Icon 1"></a>
+              <a href="#" target="_blank"><img src="data/assets/img/yt.png" alt="Icon 2"></a>
+              <a href="#" target="_blank"><img src="data/assets/img/tiktok.png" alt="Icon 3"></a>
+          </div>
+          <p class="reg">© 2024 Pentago.net</p>
       </div>
     </div>
-  </body>
-  <script src="game-settings.js"></script>
-  <script type="text/javascript">
-    window.onload = function() {
-      const name = document.getElementById('subscribe_name');
-      const email = document.getElementById('subscribe_email');
-      document.getElementById('sub-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const serviceID = 'default_service';
-        const templateID = 'template_nw53s49';
-        emailjs.sendForm(serviceID, templateID, this)
-          .then(() => {
-            alert('Thank you for subscribing to our newsletter!');
-            name.value = '';
-            email.value = '';
-          }, (err) => {
-            alert(JSON.stringify(err));
-        });
-      });
-    };
-  </script>
+    <div class="private-game-popup" id="private-game-popup">
+      <div class="private-game-popup-content">
+          <form id="g-form" class="g-form" onsubmit="event.preventDefault(); joinGamePrivate();">
+              <input class="formg" id="formg" type="text" placeholder="Room number" maxlength="6" required>
+              <button type="submit" id="g-button" class="g-button">Join a private game</button>
+          </form>                
+          <br>
+          <a href="pentago-gamepage.html" target="_blank">
+              <button id="c-button" class="c-button" onclick="startGamePrivate();">Create a private game</button>
+          </a>
+          <br>
+          <span class="close" id="close" onclick="closePrivateGamePopup()">&times;</span>
+      </div>
+  </div>
+
+</body>
 </html>

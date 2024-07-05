@@ -3,7 +3,7 @@
            www.pentago.net
 ---------------------------------------
 
-https://github.com/basedryo/pentago.net
+info.pentagogame@gmail.com
 */
 
 /*----------------------------------------------Modules----------------------------------------------*/
@@ -15,11 +15,13 @@ const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
+const diff = localStorage.getItem("diff");
 console.log('[DATA] Player name: ', playername);
 const gType = localStorage.getItem("gType");
 console.log('[DATA] Game type (0: public, 1: private): ', gType);
 const gKey = localStorage.getItem("gKey");
 console.log("[DATA] Game R-Key: ", gKey);
+
 
 /*------------------------------------------Helper functions-----------------------------------------*/
 function truncate(str, length) {
@@ -43,48 +45,244 @@ async function captureGameBoard(scene, x, y, width, height) {
   });
 }
 
-function matricesEqual(matrix1, matrix2) {
-  /* Calculates the equality of two given matrices */
-  if (matrix1.length !== matrix2.length || matrix1[0].length !== matrix2[0].length) {
-    return false; // Matrices are not the same size
+/*------------------------------------------Minimax agent-----------------------------------------*/
+
+function minimax(board, depth, isMaximizingPlayer, alpha, beta) {
+  if (depth === 0 || board.check_winner() !== '-1') {
+      return {score: evaluateBoard(board)};
   }
-  for (let i = 0; i < matrix1.length; i++) {
-    for (let j = 0; j < matrix1[0].length; j++) {
-      if (matrix1[i][j] !== matrix2[i][j]) {
-        return false; // Element mismatch
+
+  if (isMaximizingPlayer) {
+      let maxEval = -Infinity;
+      let bestMove;
+      for (let move of getAllPossibleMoves(board, 'AI')) {
+          makeMove(board, move);
+          let eva = minimax(board, depth - 1, false, alpha, beta).score;
+          undoMove(board, move);
+          if (eva > maxEval) {
+              maxEval = eva;
+              bestMove = move;
+          }
+          alpha = Math.max(alpha, eva);
+          if (beta <= alpha) break;
       }
-    }
+      return {score: maxEval, move: bestMove};
+  } else {
+      let minEval = Infinity;
+      let bestMove;
+      for (let move of getAllPossibleMoves(board, 'Human')) {
+          makeMove(board, move);
+          let eva = minimax(board, depth - 1, true, alpha, beta).score;
+          undoMove(board, move);
+          if (eva < minEval) {
+              minEval = eva;
+              bestMove = move;
+          }
+          beta = Math.min(beta, eva);
+          if (beta <= alpha) break;
+      }
+      return {score: minEval, move: bestMove};
   }
-  return true; // Matrices are equal
 }
 
-/*-----------------------------------------Main Game class----------------------------------------*/
+function chooseRandomMove(board) {
+  let moves = [];
+  let size = 6;
+
+  for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+          if (board.config[i][j] === '-1') {
+              for (let q = 1; q <= 4; q++) {
+                  [1, -1].forEach(alpha => {
+                      moves.push({i, j, q, alpha});
+                  });
+              }
+          }
+      }
+  }
+
+  if (moves.length > 0) {
+      return moves[Math.floor(Math.random() * moves.length)];
+  } else {
+      return null;
+  }
+}
+
+function getAllPossibleMoves(board, player) {
+  let moves = [];
+  for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+          if (board.config[i][j] === '-1') {
+              for (let q = 1; q <= 4; q++) {
+                  for (let alpha of [1, -1]) {
+                      moves.push({i, j, q, alpha, player});
+                  }
+              }
+          }
+      }
+  }
+  return moves;
+}
+
+function makeMove(board, move) {
+  board.config[move.i][move.j] = move.player;
+  board.rotate(move.q, move.alpha);
+}
+
+function undoMove(board, move) {
+  board.rotate(move.q, -move.alpha);
+  board.config[move.i][move.j] = '-1';
+}
+
+function evaluateBoard(board) {
+  let score = 0;
+
+  const winner = board.check_winner();
+  if (winner === '1') {
+      return 1000;
+  } else if (winner === '0') {
+      return -1000;
+  }
+
+  function countOpenLines(board, player) {
+    let count = 0;
+    let size = 6;
+    let lines = [];
+
+    // Check rows and columns
+    for (let i = 0; i < size; i++) {
+        let row = [];
+        let col = [];
+        for (let j = 0; j < size; j++) {
+            row.push(board.config[i][j]);
+            col.push(board.config[j][i]);
+        }
+        lines.push(row);
+        lines.push(col);
+    }
+
+    let diag1 = [];
+    let diag2 = [];
+    for (let i = 0; i < size; i++) {
+        diag1.push(board.config[i][i]);
+        diag2.push(board.config[i][size - 1 - i]);
+    }
+    lines.push(diag1);
+    lines.push(diag2);
+
+    function isOpenLine(line, player) { // checks if a line is open to a player
+        let hasPlayer = line.includes(player);
+        let hasOpponent = line.includes(player === '1' ? '0' : '1');
+        let hasEmpty = line.includes('-1');
+        return hasPlayer && !hasOpponent && hasEmpty;
+    }
+
+    lines.forEach(line => { // counts the open lines
+        if (isOpenLine(line, player)) {
+            count++;
+        }
+    });
+
+    return count;
+  }
+
+
+  // Calculate scores for potential lines for AI and Human
+  let aiOpenLines = countOpenLines(board, '1'); // Assuming '1' denotes AI
+  let humanOpenLines = countOpenLines(board, '0'); // Assuming '0' denotes the player
+
+  score += aiOpenLines * 10;  // Adjust weighting as needed
+  score -= humanOpenLines * 10;
+
+  // Optionally add center control weighting
+  // Assuming center squares are more strategically valuable
+  let centerPieces = [board.config[2][2], board.config[2][3], board.config[3][2], board.config[3][3]];
+  centerPieces.forEach(piece => {
+      if (piece === '1') score += 5;  // Small bonus for AI controlling center
+      if (piece === '0') score -= 5;  // Small penalty for Player controlling center
+  });
+
+  return score;
+}
+
+function chooseAIMove(board, difficulty) {
+  switch (difficulty) {
+      case 'easy':
+          return chooseRandomMove(board);
+      case 'medium':
+          return minimax(board, 3, true, -Infinity, Infinity).move;
+      case 'hard':
+          return minimax(board, 4, true, -Infinity, Infinity).move;
+      case 'expert':
+          return minimax(board, 5, true, -Infinity, Infinity).move;
+      case 'god':
+          return minimax(board, 6, true, -Infinity, Infinity).move;
+  }
+}
+
+/*-----------------------------------------Main game class----------------------------------------*/
 class GameScene extends Phaser.Scene {
   constructor() {
     super("gameScene");
-    this.ready = false;
+    this.ready = true;
     this.gameStateUpdated = false;
     this.game_state_received = false;
     this.timersStarted = false;
+    this.currentTurn = '0';
+    this.color = '0';
+    this.timerRunning = false;
+    this.lastTick = null;
+    this.playerTimer = 600;
+    this.redraw_window = this.redraw_window.bind(this);
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+    const partInSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${partInSeconds.toString().padStart(2, '0')}`;
   }
 
-  updateDisplayedTimers(timers, color) {
-    let timerValue1 = timers[0] < 0 ? 0 : timers[0];
-    let timerValue2 = timers[1] < 0 ? 0 : timers[1];
-    const formattedTime1 = this.formatTime(timerValue1);
-    const formattedTime2 = this.formatTime(timerValue2);
-    if (color === '0') {
-      this.timerText1.setText(`${formattedTime1}`);
+  updateTimer() {
+    if (this.timerRunning && this.currentTurn === '0') {
+        const now = Date.now();
+        const delta = (now - this.lastTick) / 1000;
+        this.playerTimer -= delta;
+
+        if (this.playerTimer <= 0) {
+            this.playerTimer = 0;
+            this.timerRunning = false;
+            captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
+              sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
+            setTimeout(() => {
+              window.location.href = 'pentago-lose.html';
+            }, 500);})
+        }
+
+        this.lastTick = now;
+        this.updateDisplayedTimers();
+    } else {
+        // Log this to see if updateTimer gets called when it shouldn't
+        this.lastTick = Date.now(); // Reset lastTick to prevent future time jumps
     }
-    else if (color === '1'){
-      this.timerText2.setText(`${formattedTime2}`);
-    }
+  }
+
+  startPlayerTimer() {
+    this.timerRunning = true;
+    this.lastTick = Date.now();
+  }
+
+  pausePlayerTimer() {
+    this.timerRunning = false;
+    this.lastTick = Date.now();
+  }
+
+  updateDisplayedTimers() {
+    const formattedTime = this.formatTime(this.playerTimer);
+    this.timerText1.setText(`${formattedTime}`);
   }
 
   getQuadrantIndex(x, y) {
@@ -164,34 +362,41 @@ class GameScene extends Phaser.Scene {
     });
   }
     
-  redraw_window(scene, bo, p1, p2, color, ready, p1Text, p2Text, statusText, has_placed, has_selected_q, alpha, log) {
+  redraw_window() {
+    let scene = this;
     scene.cameras.main.setBackgroundColor('#191818');
     const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
-    const textStyle3 = {fontFamily: 'Arial', fontSize: 22, color: '#FFFFFF'};
 
-    if (bo.turn === '0') {
+    const textStyle3 = {
+      fontFamily: 'Arial',
+      fontSize: 22,
+      color: '#FFFFFF'
+    };
+
+    if (this.bo.turn === '0') {
       scene.time_label = this.add.image(320* 1.406, 170* 1.406, 'white_label')
     }
-    else if (bo.turn === '1') {
+    else if (this.bo.turn === '1') {
       scene.time_label = this.add.image(320* 1.406, 170* 1.406, 'black_label')
     }
 
-    if (!has_placed && bo.turn === color && ready) {
+    if (!this.has_placed && this.bo.turn === this.color && this.ready) {
       scene.add.image(850* 1.406, 70* 1.406, 'message');
       const has_placed_text = scene.add.text(705* 1.406, 60* 1.406, 'Click on the board to place a marble', textStyle3);
     }
-    else if (has_placed && !has_selected_q && bo.turn === color && ready) {
+    else if (this.has_placed && !this.has_selected_q && this.bo.turn === this.color && this.ready) {
       scene.add.image(850* 1.406, 70* 1.406, 'message');
       const has_placed_text = scene.add.text(650* 1.406, 60* 1.406, 'Click on the board to select a quadrant and rotate it', textStyle3);
     }
-    else if (!has_placed && bo.turn !== color || !ready) {
+    else if (!this.has_placed && this.bo.turn !== this.color || !this.ready) {
       scene.add.image(850* 1.406, 70* 1.406, 'message');
       const has_placed_text = scene.add.text(766* 1.406, 60* 1.406, 'Waiting for player', textStyle3);
     }
   }
 
   draw_marble() {
+    /* Draw new marbles on the board */
     const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
   
@@ -233,6 +438,7 @@ class GameScene extends Phaser.Scene {
   }
 
   clear_marble() {
+    /* Clears the mismatching marbles' drawings from the board */
     const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
   
@@ -245,13 +451,15 @@ class GameScene extends Phaser.Scene {
           
           if (coords[0] === coord[0] && coords[1] === coord[1]) {
             if (this.bo.config[l][m] === '-1') {
+              // Destroy the marble if it's on a '-1' tile
               marbleImage.destroy();
               //console.log('Destroyed: ', marbleImage);
-              return false;
+              return false; // Remove the marble from the array
             } else if (player != this.bo.config[l][m]) {
-              marbleImage.destroy(); // Destroy the marble if it doesn't match the tile configuration
+              // Destroy the marble if it doesn't match the tile configuration
+              marbleImage.destroy();
               //console.log('Destroyed: ', marbleImage);
-              return false; 
+              return false; // Remove the marble from the array
             }
           }
         }
@@ -259,130 +467,80 @@ class GameScene extends Phaser.Scene {
       return true; // Keep the marble in the array
     });
   }
-  
-  connect() {
-    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
-    const offset_y = this.cameras.main.height / 2 - 40* 1.406;
-    const initialConnectionMessage = {
-      type: 'initialConnection',
-      playerName: playername,
-      gType: gType,
-      gKey: gKey,
-    };
-    let flag = 0;
-    let count = 0;
-    this.socket = new WebSocket('ws://localhost:443');
-    this.socket.addEventListener('open', (event) => {
-      this.socket.send(JSON.stringify(initialConnectionMessage));
-      console.log('Connected to the server');
-    });
 
-    this.socket.addEventListener('close', (event) => {
-      console.log('Disconnected from the server');
-    });
-
-    this.socket.addEventListener('error', (event) => {
-      console.log('Error:', event);
-    });
-
-    this.socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-    
-      if (data.type === 'gameState') {
-        if (data.ready && !this.timersStarted) {
-          this.timersStarted = true;
-          if (data.type === 'updateTimers') {
-            const timers = data.timers;
-            this.updateDisplayedTimers(timers, this.color);
-          }
-        }
-      }
-
-      const textStyle4 = {
-        fontFamily: 'Arial',
-        fontSize: 30,
-        color: '#FFFFFF'
-      };
-
-      if (data.type === 'gameState' && flag <= 1) {
-        let serial = 'Room number #';
-        if (data.key !== undefined) {
-          serial += data.key;
-        } else {
-          serial += '';
-        }
-        if (count < 1){
-          this.add.text(280* 1.406, 530* 1.406, serial, textStyle4);
-          count++;
-        }
-        if (data.ready && data.p1Name !== '' && data.p2Name !== '') {
-          this.add.text(270* 1.406, 577* 1.406, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#000000'});
-          this.add.text(270* 1.406, 617* 1.406, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF'});
-          serial = '';
-          flag++;
-        }
-      }
-  
-      if (data.type === 'end') {
-        captureGameBoard(this, offset_x - 284* 1.406, offset_y - 244* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
-          sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
-      
-          if (data.result === 'win') {
-            setTimeout(() => {
-              window.location.href = 'pentago-win.html';
-            }, 500); // Delay
-          } else if (data.result === 'lose') {
-            setTimeout(() => {
-              window.location.href = 'pentago-lose.html';
-            }, 500);
-          } else if (data.result === 'tie') {
-            setTimeout(() => {
-              window.location.href = 'pentago-tie.html';
-            }, 500);
-          }
-        });
-      }
-
-      if (data.type === 'error') {
-        alert('Invalid room number, you are being redirected to the homepage...');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 500);
-      }
-  
-    // Updates the client game-state
-    if (data.type === 'gameState') {
-      this.game_state_received = true;
-      this.gameStateUpdated = true;
-      this.bo.timers = data.timers;
-      this.bo.ready = data.ready
-      this.bo.turn = data.turn;
-      this.bo.time1 = data.time1;
-      this.bo.time2 = data.time2;
-      this.bo.p1Name = data.p1Name;
-      this.bo.p2Name = data.p2Name;
-      this.color = data.color;
-      this.key = data.key;
-      this.move_log = data.log;
-  
-      if (data.ready !== undefined) { // Check if the ready status is available in the gameState message
-        this.ready = data.ready;
-      }
-
-      if (matricesEqual(this.bo.config, data.board)) {
-        console.log('[GAME] Board configuration did not change. Not clearing marbles.');
-      } else {
-        console.log('[GAME] Board configuration changed. Clearing marbles.');
-        this.bo.config = data.board;
-        this.draw_marble();
-      }      
-
-      this.needRedraw = true;
-      }
+  generateAIMove() {
+    let move = {
+        i: 0,
+        j: 0,
+        q: 0,
+        alpha: 0
     };
 
-    console.log('Socket connection:', this.socket);
-  }    
+    let emptyPositions = [];
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+            if (this.bo.config[i][j] === '-1') {
+                emptyPositions.push({ i, j });
+            }
+        }
+    }
+
+    if (emptyPositions.length > 0) {
+        let position = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
+        move.i = position.i;
+        move.j = position.j;
+    }
+
+    move.q = Math.floor(Math.random() * 4) + 1;
+    move.alpha = Math.random() > 0.5 ? 1 : -1;
+
+    return move;
+  }
+  
+  async performAIMove() {
+    this.isAITurn = true;
+    this.lastTick = Date.now();
+    this.pausePlayerTimer();
+
+    this.bo.turn = '1';
+    this.ready = false;
+    this.redraw_window();
+    await this.delay(500);
+
+    let move = chooseAIMove(this.bo, diff);
+    console.log(move)
+    this.bo.config[move.i][move.j] = '1';
+    this.draw_marble();
+    this.redraw_window();
+    await this.delay(1000);
+
+    this.bo.rotate(move.q, move.alpha);
+    this.draw_marble();
+    this.clear_marble();
+    this.redraw_window();
+    await this.delay(500);
+
+    this.bo.turn = '0';
+    this.ready = true;
+    this.redraw_window();
+
+    this.lastTick = Date.now();
+    this.startPlayerTimer();
+    this.isAITurn = false;
+    this.resetFlagsForNextTurn();
+  }
+
+  resetFlagsForNextTurn() {
+    this.has_placed = false;
+    this.has_selected_q = false;
+    this.first_move = true;
+    this.alpha = 0;
+    this.q = null;
+    this.draggingQuadrant = null;
+    this.has_rotated = false;
+    this.clear_marble();
+    this.draw_marble();
+  }
   
   preload(){
     /* Loads the game assets */
@@ -596,7 +754,6 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
-    /* Inits variables, defines animations, sounds, displays assets, handles clicks */
     const offset_x = this.cameras.main.width / 2 + 150* 1.406;
     const offset_y = this.cameras.main.height / 2;
     const dx = offset_x - 283* 1.406;
@@ -609,17 +766,31 @@ class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, 1920, 1080);
     this.count = 0;
     this.marbles = [];
+    
+
     this.has_placed = false;
     this.has_selected_q = false;
-    this.has_rotated = false;
     this.first_move = true;
     this.alpha = 0;
+
     this.bo = new Board(566* 1.406, 566* 1.406);
+    this.bo.turn = '0';
+    this.bo.p1Name = playername;
+
+    if (diff === 'easy') {
+      this.bo.p2Name = 'Benvenuto'
+    } else if (diff === 'medium') {
+      this.bo.p2Name = 'Decimo'
+    } else if (diff === 'hard'){
+      this.bo.p2Name = 'Fortunato'
+    } else if (diff === 'god') {
+      this.bo.p2Name = 'Pentagod'
+    }
+
     this.name = 'player';
     this.running = true;
     this.serial_key = '';
     this.handlersSet = false;
-    this.connect();
 
     this.copykeyBtn = new Phaser.Geom.Rectangle(270* 1.406, 530* 1.406, 250* 1.406, 20* 1.406);
     this.q1Btn = new Phaser.Geom.Rectangle(offset_x - 142* 1.406 + 0.75, offset_y - 142* 1.406 + 0.75, 284* 1.406, 284* 1.406);
@@ -639,14 +810,15 @@ class GameScene extends Phaser.Scene {
     this.hover_4 = null;
     this.p1 = null;
     this.p2 = null;
+    this.winner = null;
 
-    // GUI initialization
     this.time_label = this.add.image(420* 1.406, 170* 1.406, 'time_label');
     this.timerText1 = this.add.text(400* 1.406, 155* 1.406, '', { fontFamily: 'Arial', fontSize: "40px", color: "#FFFFFF" });
     this.timerText2 = this.add.text(400* 1.406, 155* 1.406, '', { fontFamily: 'Arial', fontSize: "40px", color: "#FFFFFF" });
     this.add.image(395* 1.406, 610* 1.406, 'names');
+    this.add.text(270* 1.406, 577* 1.406, truncate(this.bo.p1Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#000000'});
+    this.add.text(270* 1.406, 617* 1.406, truncate(this.bo.p2Name, 11), {fontFamily: 'Arial', fontSize: 30, color: '#FFFFFF'});
 
-    // Board blitting
     this.white_square = this.add.image(offset_x, offset_y, 'white_square');
 
     this.q1 = this.add.image(offset_x - 200 + 0.75, offset_y - 200 + 0.75, 'quarter_board'); // TOP-LEFT
@@ -665,7 +837,6 @@ class GameScene extends Phaser.Scene {
     this.draggingQuadrant = null;
     this.isDragging = false;
 
-    // Making the quadrant images interactive and enabling drag-and-drop
     this.quadrants_drawings.forEach((quadrantImage, index) => {
       quadrantImage.setInteractive({ draggable: true });
       quadrantImage.setOrigin(0.5, 0.5);
@@ -695,10 +866,28 @@ class GameScene extends Phaser.Scene {
           const angleThreshold = 45; // Threshold in degrees
           if (Math.abs(angle) >= angleThreshold) {
             quarter_rotation_sfx.play();
-            this.socket.send(JSON.stringify({ type: 'quarter', q: this.draggingQuadrant.index, alpha: this.alpha}));
             this.bo.rotate(this.draggingQuadrant.index, this.alpha)
             this.revertRotation();
+
             this.has_rotated = true;
+
+            this.winner = this.bo.check_winner();
+                if (this.winner !== '-1') {
+                console.log('GAMEEND')
+                captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
+                sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
+                if (this.winner === '0') {
+                setTimeout(() => {
+                  window.location.href = 'pentago-win.html';
+                }, 500);
+                } else {
+                setTimeout(() => {
+                  window.location.href = 'pentago-lose.html';
+                }, 500);
+              }
+            })
+            }
+            
           } else {
             this.revertRotation();
           }
@@ -707,75 +896,41 @@ class GameScene extends Phaser.Scene {
       });
     });
 
-    // pointerup
     this.input.on('pointerup', (pointer) => {
-      if (this.game_state_received && this.color !== 's' && this.bo.ready) {
-        if (this.color === this.bo.turn) {
-          const pos = { x: pointer.x, y: pointer.y };
-          if (pos.x >= offset_x - 284* 1.406 && pos.x <= offset_x + 284* 1.406 && pos.y >= offset_y - 284* 1.406 && pos.y <= offset_y + 284* 1.406) {
-            marble_placement_sfx.play();
-            console.log("[GAME] this.bo.config: ", this.bo.config);
-            if (!this.has_placed) {
-              const [i, j] = this.bo.handle_click(pos, this.color, dx, dy);
-              if (this.bo.config[j][i] === '-1') {
-                this.socket.send(JSON.stringify({ type: 'select', i, j, color: this.color }));
-                console.log('[GAME] Data sent to server (select):', { type: 'select', i, j, color: this.color });
-                this.has_placed = true;
-              } else {
-                console.log('[GAME] Warning! invalid placement, please select a free cell');
-                this.has_placed = false;
-              }
-            }
-          if (this.has_placed && this.has_rotated && this.alpha !== 0){
-            this.has_placed = false;
-            this.has_selected_q = false;
-            this.first_move = true;
-            this.alpha = 0;
-            this.q = null;
-            this.draggingQuadrant = null;
-            this.has_rotated = false;
-
-            this.clear_marble();
-            this.draw_marble();
-          }         
-          }
-        }
+      if (this.isAITurn) {
+          console.log('AI is processing. No interaction allowed.');
+          return;
       }
 
-      if (Phaser.Geom.Rectangle.Contains(this.copykeyBtn, pointer.x, pointer.y)) {
-        console.log('[GAME] Game key copied to the clipboard');
-        const tempInput = document.createElement("input");
-        tempInput.value = this.key;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        this.cp_warning = this.add.text(310* 1.406, 500* 1.406, ' Copied to the clipboard! ', { fontFamily: 'Arial', fontSize: "15px", color: "#FFFFFF"});
-        var cp_delay = 1000;
-        this.time.delayedCall(cp_delay, function() {
-            this.cp_warning.destroy();
-        }, [], this);
+      const pos = { x: pointer.x, y: pointer.y };
+      if (pos.x >= offset_x - 284* 1.406 && pos.x <= offset_x + 284* 1.406 && pos.y >= offset_y - 284* 1.406 && pos.y <= offset_y + 284* 1.406) {
+          marble_placement_sfx.play();
+          console.log("[GAME] this.bo.config: ", this.bo.config);
+          if (!this.has_placed) {
+              const [i, j] = this.bo.handle_click(pos, this.color, dx, dy);
+              if (this.bo.config[j][i] === '-1') {
+                  this.startPlayerTimer();
+                  this.bo.config[j][i] = '0';
+                  this.has_placed = true;
+                  this.draw_marble();
+              } else {
+                  console.log('[GAME] Warning! invalid placement, please select a free cell');
+              }
+          }
+
+          if (this.has_placed && this.has_rotated && this.alpha !== 0){
+              this.performAIMove();
+          }         
       }
     });
   }
     
   update() {
-    if (this.gameStateUpdated) {
-      this.gameStateUpdated = false;
-      this.clear_marble();
-      this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
-      this.updateDisplayedTimers(this.bo.timers, this.color);
-    }
-  
-    if (this.needRedraw) {
-      this.needRedraw = false;
-      this.waitingText.visible = !this.ready;
-      
-      if (this.ready) {
-        const p1_time = this.bo.time1;
-        const p2_time = this.bo.time2;
-        this.redraw_window(this, this.bo, p1_time, p2_time, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
-      }
+    if (this.ready) {
+      this.updateTimer();
+      const p1_time = this.bo.time1;
+      const p2_time = this.bo.time2;
+      this.redraw_window(this, this.bo, p1_time, p2_time, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
     }
   
     this.updateCounter++;
