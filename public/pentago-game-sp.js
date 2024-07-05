@@ -510,13 +510,11 @@ class GameScene extends Phaser.Scene {
     let move = chooseAIMove(this.bo, diff);
     console.log(move)
     this.bo.config[move.i][move.j] = '1';
-    marble_placement_sfx.play();
     this.draw_marble();
     this.redraw_window();
     await this.delay(1000);
 
     this.bo.rotate(move.q, move.alpha);
-    quarter_rotation_sfx.play();
     this.draw_marble();
     this.clear_marble();
     this.redraw_window();
