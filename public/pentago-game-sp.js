@@ -46,68 +46,6 @@ async function captureGameBoard(scene, x, y, width, height) {
 }
 
 /*------------------------------------------Minimax agent-----------------------------------------*/
-
-function minimax(board, depth, isMaximizingPlayer, alpha, beta) {
-  if (depth === 0 || board.check_winner() !== '-1') {
-      return {score: evaluateBoard(board)};
-  }
-
-  if (isMaximizingPlayer) {
-      let maxEval = -Infinity;
-      let bestMove;
-      for (let move of getAllPossibleMoves(board, 'AI')) {
-          makeMove(board, move);
-          let eva = minimax(board, depth - 1, false, alpha, beta).score;
-          undoMove(board, move);
-          if (eva > maxEval) {
-              maxEval = eva;
-              bestMove = move;
-          }
-          alpha = Math.max(alpha, eva);
-          if (beta <= alpha) break;
-      }
-      return {score: maxEval, move: bestMove};
-  } else {
-      let minEval = Infinity;
-      let bestMove;
-      for (let move of getAllPossibleMoves(board, 'Human')) {
-          makeMove(board, move);
-          let eva = minimax(board, depth - 1, true, alpha, beta).score;
-          undoMove(board, move);
-          if (eva < minEval) {
-              minEval = eva;
-              bestMove = move;
-          }
-          beta = Math.min(beta, eva);
-          if (beta <= alpha) break;
-      }
-      return {score: minEval, move: bestMove};
-  }
-}
-
-function chooseRandomMove(board) {
-  let moves = [];
-  let size = 6;
-
-  for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-          if (board.config[i][j] === '-1') {
-              for (let q = 1; q <= 4; q++) {
-                  [1, -1].forEach(alpha => {
-                      moves.push({i, j, q, alpha});
-                  });
-              }
-          }
-      }
-  }
-
-  if (moves.length > 0) {
-      return moves[Math.floor(Math.random() * moves.length)];
-  } else {
-      return null;
-  }
-}
-
 function getAllPossibleMoves(board, player) {
   let moves = [];
   for (let i = 0; i < 6; i++) {
@@ -134,89 +72,196 @@ function undoMove(board, move) {
   board.config[move.i][move.j] = '-1';
 }
 
+function minimax(board, depth, isMaximizingPlayer, alpha, beta) {
+  if (depth === 0 || board.check_winner() !== '-1') {
+      return { score: evaluateBoard(board) };
+  }
+
+  if (isMaximizingPlayer) {
+      let maxEval = -Infinity;
+      let bestMove = null;
+      const possibleMoves = getAllPossibleMoves(board, 'AI');
+
+      for (let move of possibleMoves) {
+          makeMove(board, move);
+          let evaluation = minimax(board, depth - 1, false, alpha, beta);
+          undoMove(board, move);
+
+          if (evaluation.score > maxEval) {
+              maxEval = evaluation.score;
+              bestMove = move;
+          }
+
+          alpha = Math.max(alpha, evaluation.score);
+          if (beta <= alpha) {
+              break;
+          }
+      }
+
+      return { score: maxEval, move: bestMove };
+  } else {
+      let minEval = Infinity;
+      let bestMove = null;
+      const possibleMoves = getAllPossibleMoves(board, 'Human');
+
+      for (let move of possibleMoves) {
+          makeMove(board, move);
+          let evaluation = minimax(board, depth - 1, true, alpha, beta);
+          undoMove(board, move);
+
+          if (evaluation.score < minEval) {
+              minEval = evaluation.score;
+              bestMove = move;
+          }
+
+          beta = Math.min(beta, evaluation.score);
+          if (beta <= alpha) {
+              break;
+          }
+      }
+
+      return { score: minEval, move: bestMove };
+  }
+}
+
 function evaluateBoard(board) {
   let score = 0;
+  const lines = getAllLines(board);
 
-  const winner = board.check_winner();
-  if (winner === '1') {
-      return 1000;
-  } else if (winner === '0') {
-      return -1000;
-  }
+  // Evaluate all lines (rows, columns, diagonals)
+  lines.forEach(line => {
+      const counts = countStones(line);
+      score += calculateLineScore(counts);
+  });
 
-  function countOpenLines(board, player) {
-    let count = 0;
-    let size = 6;
-    let lines = [];
+  // Center control bonus
+  const centerCells = [
+      {i: 1, j: 1}, {i: 1, j: 4},
+      {i: 4, j: 1}, {i: 4, j: 4}
+  ];
+  const centerBonus = 5;  // Points to add or subtract per center cell
 
-    // Check rows and columns
-    for (let i = 0; i < size; i++) {
-        let row = [];
-        let col = [];
-        for (let j = 0; j < size; j++) {
-            row.push(board.config[i][j]);
-            col.push(board.config[j][i]);
-        }
-        lines.push(row);
-        lines.push(col);
-    }
-
-    let diag1 = [];
-    let diag2 = [];
-    for (let i = 0; i < size; i++) {
-        diag1.push(board.config[i][i]);
-        diag2.push(board.config[i][size - 1 - i]);
-    }
-    lines.push(diag1);
-    lines.push(diag2);
-
-    function isOpenLine(line, player) { // checks if a line is open to a player
-        let hasPlayer = line.includes(player);
-        let hasOpponent = line.includes(player === '1' ? '0' : '1');
-        let hasEmpty = line.includes('-1');
-        return hasPlayer && !hasOpponent && hasEmpty;
-    }
-
-    lines.forEach(line => { // counts the open lines
-        if (isOpenLine(line, player)) {
-            count++;
-        }
-    });
-
-    return count;
-  }
-
-
-  // Calculate scores for potential lines for AI and Human
-  let aiOpenLines = countOpenLines(board, '1'); // Assuming '1' denotes AI
-  let humanOpenLines = countOpenLines(board, '0'); // Assuming '0' denotes the player
-
-  score += aiOpenLines * 10;  // Adjust weighting as needed
-  score -= humanOpenLines * 10;
-
-  // Optionally add center control weighting
-  // Assuming center squares are more strategically valuable
-  let centerPieces = [board.config[2][2], board.config[2][3], board.config[3][2], board.config[3][3]];
-  centerPieces.forEach(piece => {
-      if (piece === '1') score += 5;  // Small bonus for AI controlling center
-      if (piece === '0') score -= 5;  // Small penalty for Player controlling center
+  centerCells.forEach(cell => {
+      const stone = board.config[cell.i][cell.j];
+      if (stone === 'AI') {
+          score += centerBonus;
+      } else if (stone === 'Human') {
+          score -= centerBonus;
+      }
   });
 
   return score;
 }
 
-function chooseAIMove(board, difficulty) {
+function getAllLines(board) {
+  let lines = [];
+
+  // Horizontal and vertical lines
+  for (let i = 0; i < 6; i++) {
+      let horizontalLine = [];
+      let verticalLine = [];
+      for (let j = 0; j < 6; j++) {
+          horizontalLine.push(board.config[i][j]);
+          verticalLine.push(board.config[j][i]);
+      }
+      lines.push(horizontalLine);
+      lines.push(verticalLine);
+  }
+
+  // Major diagonals (top-left to bottom-right)
+  for (let k = -1; k <= 1; k++) {
+      let diagonal1 = [];
+      let diagonal2 = [];
+      for (let i = 0; i < 6; i++) {
+          let j1 = i + k;
+          let j2 = i - k;
+          if (j1 >= 0 && j1 < 6) {
+              diagonal1.push(board.config[i][j1]);
+          }
+          if (j2 >= 0 && j2 < 6) {
+              diagonal2.push(board.config[i][j2]);
+          }
+      }
+      if (diagonal1.length >= 5) lines.push(diagonal1);
+      if (diagonal2.length >= 5 && k !== 0) lines.push(diagonal2);  // Avoid duplicating the main diagonal
+  }
+
+  // Minor diagonals (top-right to bottom-left)
+  for (let k = -1; k <= 1; k++) {
+      let diagonal1 = [];
+      let diagonal2 = [];
+      for (let i = 0; i < 6; i++) {
+          let j1 = 5 - i + k;
+          let j2 = 5 - i - k;
+          if (j1 >= 0 && j1 < 6) {
+              diagonal1.push(board.config[i][j1]);
+          }
+          if (j2 >= 0 && j2 < 6) {
+              diagonal2.push(board.config[i][j2]);
+          }
+      }
+      if (diagonal1.length >= 5) lines.push(diagonal1);
+      if (diagonal2.length >= 5 && k !== 0) lines.push(diagonal2);  // Avoid duplicating the main diagonal
+  }
+
+  return lines;
+}
+
+function countStones(line) {
+  const counts = { AI: 0, Human: 0, Empty: 0 };
+  line.forEach(cell => {
+      if (cell === 'AI') counts.AI++;
+      else if (cell === 'Human') counts.Human++;
+      else counts.Empty++;
+  });
+  return counts;
+}
+
+function calculateLineScore(counts) {
+  if (counts.AI > 0 && counts.Human === 0) {
+      // AI has a free line
+      return counts.AI * 10;
+  } else if (counts.Human > 0 && counts.AI === 0) {
+      // Human has a free line
+      return -counts.Human * 10;
+  }
+  return 0;
+}
+
+function chooseAIMove(board, difficulty, moveCount) {
   switch (difficulty) {
       case 'easy':
           return chooseRandomMove(board);
       case 'medium':
           return minimax(board, 3, true, -Infinity, Infinity).move;
       case 'hard':
-          return minimax(board, 4, true, -Infinity, Infinity).move;
+          return minimax(board, 5, true, -Infinity, Infinity).move;
       case 'expert':
           return minimax(board, 5, true, -Infinity, Infinity).move;
       case 'god':
           return minimax(board, 6, true, -Infinity, Infinity).move;
+  }
+}
+
+function chooseRandomMove(board) {
+  let moves = [];
+  for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+          if (board.config[i][j] === '-1') { // Check if the spot is empty
+              for (let q = 1; q <= 4; q++) { // Each of the 4 quadrants
+                  for (let alpha of [1, -1]) { // Rotation direction: clockwise and counterclockwise
+                      moves.push({i, j, q, alpha}); // Store possible move
+                  }
+              }
+          }
+      }
+  }
+
+  if (moves.length > 0) {
+      const randomIndex = Math.floor(Math.random() * moves.length); // Select a random index
+      return moves[randomIndex]; // Return the random move
+  } else {
+      return null; // Return null if no moves are available
   }
 }
 
@@ -507,7 +552,7 @@ class GameScene extends Phaser.Scene {
     this.redraw_window();
     await this.delay(500);
 
-    let move = chooseAIMove(this.bo, diff);
+    let move = chooseAIMove(this.bo, diff, this.movecount);
     console.log(move)
     this.bo.config[move.i][move.j] = '1';
     this.draw_marble();
@@ -776,6 +821,7 @@ class GameScene extends Phaser.Scene {
     this.bo = new Board(566* 1.406, 566* 1.406);
     this.bo.turn = '0';
     this.bo.p1Name = playername;
+    this.movecount = 0;
 
     if (diff === 'easy') {
       this.bo.p2Name = 'Benvenuto'
@@ -895,6 +941,7 @@ class GameScene extends Phaser.Scene {
                   this.startPlayerTimer();
                   this.bo.config[j][i] = '0';
                   this.has_placed = true;
+                  this.movecount += 1;
                   this.draw_marble();
               } else {
                   console.log('[GAME] Warning! invalid placement, please select a free cell');
@@ -902,23 +949,8 @@ class GameScene extends Phaser.Scene {
           }
 
           if (this.has_placed && this.has_rotated && this.alpha !== 0){
-              this.winner = this.bo.check_winner();
-              if (this.winner !== '-1') {
-                  console.log('GAMEEND')
-                  captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
-                  sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
-                  if (this.winner === '0') {
-                  setTimeout(() => {
-                    window.location.href = 'pentago-win.html';
-                  }, 500);
-                  } else {
-                    setTimeout(() => {
-                    window.location.href = 'pentago-lose.html';
-                    }, 500);
-                  }
-                })
-              }
               this.performAIMove();
+              this.movecount += 1;
           }         
       }
     });
@@ -935,6 +967,29 @@ class GameScene extends Phaser.Scene {
     this.updateCounter++;
     if (this.updateCounter % 60 === 0) {
       this.redraw_window(this, this.bo, this.bo.time1, this.bo.time2, this.color, this.ready, this.p1Text, this.p2Text, this.statusText, this.has_placed, this.has_selected_q, this.alpha, this.log_text);
+    }
+
+    this.winner = this.bo.check_winner();
+    const offset_x = this.cameras.main.width / 2 + 150* 1.406;
+    const offset_y = this.cameras.main.height / 2;
+    if (this.winner !== '-1') {
+        console.log('GAMEEND')
+        captureGameBoard(this, offset_x - 284* 1.406, offset_y - 284* 1.406, 580* 1.406, 580* 1.406).then(gameBoardScreenshot => {
+        sessionStorage.setItem('gameBoardScreenshot', gameBoardScreenshot);
+        if (this.winner === '0') {
+        setTimeout(() => {
+          window.location.href = 'pentago-win.html';
+        }, 500);
+        } else if (this.winner === '1'){
+          setTimeout(() => {
+          window.location.href = 'pentago-lose.html';
+          }, 500);
+        } else if (this.winner === '2'){
+          setTimeout(() => {
+            window.location.href = 'pentago-tie.html';
+          }, 500);
+        }
+      })
     }
   }    
 }
