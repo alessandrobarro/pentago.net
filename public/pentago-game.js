@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-62c1232b3105.herokuapp.com';
+const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -271,7 +271,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago-62c1232b3105.herokuapp.com');
+    this.socket = new WebSocket('ws://localhost:443');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
@@ -789,7 +789,7 @@ class GameScene extends Phaser.Scene {
 const config = {
   width: 1920,
   height: 1080,
-  backgroundColor: "#262323",
+  backgroundColor: "#191818",
   parent: "gameContainer",
   scale: {
     mode: Phaser.Scale.FIT,

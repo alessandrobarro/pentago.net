@@ -998,7 +998,7 @@ class GameScene extends Phaser.Scene {
 const config = {
   width: 1920,
   height: 1080,
-  backgroundColor: "#262323",
+  backgroundColor: "#191818",
   parent: "gameContainer",
   scale: {
     mode: Phaser.Scale.FIT,
