@@ -5,7 +5,7 @@ Click on the following link http://www.pentago.net/ (deprecated) and start a gam
 You are welcome to report any bugs or issues by clicking on the "mail" icon at the top-left corner.
 NOTE: only devices such as Desktop, Mac, most of the tablets are supported. Mobile phones are NOT completely supported.
 
-# Game-play summary
+# Gameplay summary
 Pentago.net is a real-time 1v1 webgame. Players alternate in turns, and in each turn a marble is placed and a quadrant is rotated. The first
 player to place 5 marbles of his own in a row (horizontally, vertically, diagonally) wins.
 
