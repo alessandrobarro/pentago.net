@@ -46,6 +46,108 @@ async function captureGameBoard(scene, x, y, width, height) {
 }
 
 /*------------------------------------------Minimax agent-----------------------------------------*/
+function minimax(board, depth, isMaximizingPlayer) {
+  if (depth === 0 || board.check_winner() !== '-1') {
+      return { value: evaluate(board) }; // Return the heuristic value of the board
+  }
+
+  if (isMaximizingPlayer) {
+      let maxEval = -Infinity;
+      let bestMove = null;
+      for (let move of getAllPossibleMoves(board, 1)) {
+          makeMove(board, move);
+          let evaluation = minimax(board, depth - 1, false);
+          undoMove(board, move);
+
+          if (evaluation.value > maxEval) {
+              maxEval = evaluation.value;
+              bestMove = move;
+          }
+      }
+      return { value: maxEval, move: bestMove };
+  } else {
+      let minEval = Infinity;
+      let bestMove = null;
+      for (let move of getAllPossibleMoves(board, -1)) {
+          makeMove(board, move);
+          let evaluation = minimax(board, depth - 1, true);
+          undoMove(board, move);
+
+          if (evaluation.value < minEval) {
+              minEval = evaluation.value;
+              bestMove = move;
+          }
+      }
+      return { value: minEval, move: bestMove };
+  }
+}
+
+function evaluate(board) {
+  let score = 0;
+  score += evaluateLines(board, 1); // Calcolo per il giocatore 1
+  score -= evaluateLines(board, 0); // Calcolo per il giocatore -1
+
+  // Bonus aggiuntivo per il controllo delle caselle centrali
+  if (board.config[1][1] === '1' || board.config[1][4] === '1' ||
+      board.config[4][1] === '1' || board.config[4][4] === '1') {
+      score += 50;
+  }
+  if (board.config[1][1] === '0' || board.config[1][4] === '0' ||
+      board.config[4][1] === '0' || board.config[4][4] === '0') {
+      score -= 50;
+  }
+  //console.log(score)
+  return score;
+}
+
+function evaluateLines(board, player) {
+  let total = 0;
+  const size = 6; // Dimensione del tabellone Pentago
+  let lineCount;
+
+  // Valutazione delle linee orizzontali
+  for (let i = 0; i < size; i++) {
+      lineCount = countConsecutive(board.config[i], player);
+      total += lineCount;
+  }
+
+  // Valutazione delle linee verticali
+  for (let j = 0; j < size; j++) {
+      let column = [];
+      for (let i = 0; i < size; i++) {
+          column.push(board.config[i][j]);
+      }
+      lineCount = countConsecutive(column, player);
+      total += lineCount;
+  }
+
+  // Valutazione delle linee diagonali (principali e secondarie)
+  let diagonals = [ [], [] ];
+  for (let i = 0; i < size; i++) {
+      diagonals[0].push(board.config[i][i]);             // Diagonale principale
+      diagonals[1].push(board.config[i][size - 1 - i]);  // Diagonale secondaria
+  }
+  for (let diag of diagonals) {
+      lineCount = countConsecutive(diag, player);
+      total += lineCount;
+  }
+
+  return total;
+}
+
+function countConsecutive(line, player) {
+  let maxCount = 0, count = 0;
+  for (let value of line) {
+      if (value === player.toString()) {
+          count++;
+          maxCount = Math.max(maxCount, count);
+      } else {
+          count = 0;
+      }
+  }
+  return Math.pow(5, maxCount);
+}
+
 function getAllPossibleMoves(board, player) {
   let moves = [];
   for (let i = 0; i < 6; i++) {
@@ -72,166 +174,10 @@ function undoMove(board, move) {
   board.config[move.i][move.j] = '-1';
 }
 
-function minimax(board, depth, isMaximizingPlayer, alpha, beta) {
-  if (depth === 0 || board.check_winner() !== '-1') {
-      return { score: evaluateBoard(board) };
-  }
-
-  if (isMaximizingPlayer) {
-      let maxEval = -Infinity;
-      let bestMove = null;
-      const possibleMoves = getAllPossibleMoves(board, 'AI');
-
-      for (let move of possibleMoves) {
-          makeMove(board, move);
-          let evaluation = minimax(board, depth - 1, false, alpha, beta);
-          undoMove(board, move);
-
-          if (evaluation.score > maxEval) {
-              maxEval = evaluation.score;
-              bestMove = move;
-          }
-
-          alpha = Math.max(alpha, evaluation.score);
-          if (beta <= alpha) {
-              break;
-          }
-      }
-
-      return { score: maxEval, move: bestMove };
-  } else {
-      let minEval = Infinity;
-      let bestMove = null;
-      const possibleMoves = getAllPossibleMoves(board, 'Human');
-
-      for (let move of possibleMoves) {
-          makeMove(board, move);
-          let evaluation = minimax(board, depth - 1, true, alpha, beta);
-          undoMove(board, move);
-
-          if (evaluation.score < minEval) {
-              minEval = evaluation.score;
-              bestMove = move;
-          }
-
-          beta = Math.min(beta, evaluation.score);
-          if (beta <= alpha) {
-              break;
-          }
-      }
-
-      return { score: minEval, move: bestMove };
-  }
-}
-
-function evaluateBoard(board) {
-  let score = 0;
-  const lines = getAllLines(board);
-
-  // Evaluate all lines (rows, columns, diagonals)
-  lines.forEach(line => {
-      const counts = countStones(line);
-      score += calculateLineScore(counts);
-  });
-
-  // Center control bonus
-  const centerCells = [
-      {i: 1, j: 1}, {i: 1, j: 4},
-      {i: 4, j: 1}, {i: 4, j: 4}
-  ];
-  const centerBonus = 5;  // Points to add or subtract per center cell
-
-  centerCells.forEach(cell => {
-      const stone = board.config[cell.i][cell.j];
-      if (stone === 'AI') {
-          score += centerBonus;
-      } else if (stone === 'Human') {
-          score -= centerBonus;
-      }
-  });
-
-  return score;
-}
-
-function getAllLines(board) {
-  let lines = [];
-
-  // Horizontal and vertical lines
-  for (let i = 0; i < 6; i++) {
-      let horizontalLine = [];
-      let verticalLine = [];
-      for (let j = 0; j < 6; j++) {
-          horizontalLine.push(board.config[i][j]);
-          verticalLine.push(board.config[j][i]);
-      }
-      lines.push(horizontalLine);
-      lines.push(verticalLine);
-  }
-
-  // Major diagonals (top-left to bottom-right)
-  for (let k = -1; k <= 1; k++) {
-      let diagonal1 = [];
-      let diagonal2 = [];
-      for (let i = 0; i < 6; i++) {
-          let j1 = i + k;
-          let j2 = i - k;
-          if (j1 >= 0 && j1 < 6) {
-              diagonal1.push(board.config[i][j1]);
-          }
-          if (j2 >= 0 && j2 < 6) {
-              diagonal2.push(board.config[i][j2]);
-          }
-      }
-      if (diagonal1.length >= 5) lines.push(diagonal1);
-      if (diagonal2.length >= 5 && k !== 0) lines.push(diagonal2);  // Avoid duplicating the main diagonal
-  }
-
-  // Minor diagonals (top-right to bottom-left)
-  for (let k = -1; k <= 1; k++) {
-      let diagonal1 = [];
-      let diagonal2 = [];
-      for (let i = 0; i < 6; i++) {
-          let j1 = 5 - i + k;
-          let j2 = 5 - i - k;
-          if (j1 >= 0 && j1 < 6) {
-              diagonal1.push(board.config[i][j1]);
-          }
-          if (j2 >= 0 && j2 < 6) {
-              diagonal2.push(board.config[i][j2]);
-          }
-      }
-      if (diagonal1.length >= 5) lines.push(diagonal1);
-      if (diagonal2.length >= 5 && k !== 0) lines.push(diagonal2);  // Avoid duplicating the main diagonal
-  }
-
-  return lines;
-}
-
-function countStones(line) {
-  const counts = { AI: 0, Human: 0, Empty: 0 };
-  line.forEach(cell => {
-      if (cell === 'AI') counts.AI++;
-      else if (cell === 'Human') counts.Human++;
-      else counts.Empty++;
-  });
-  return counts;
-}
-
-function calculateLineScore(counts) {
-  if (counts.AI > 0 && counts.Human === 0) {
-      // AI has a free line
-      return counts.AI * 10;
-  } else if (counts.Human > 0 && counts.AI === 0) {
-      // Human has a free line
-      return -counts.Human * 10;
-  }
-  return 0;
-}
-
 function chooseAIMove(board, difficulty, moveCount) {
   switch (difficulty) {
       case 'easy':
-          return chooseRandomMove(board);
+        return minimax(board, 2, true, -Infinity, Infinity).move;
       case 'medium':
           return minimax(board, 3, true, -Infinity, Infinity).move;
       case 'hard':
@@ -354,7 +300,10 @@ class GameScene extends Phaser.Scene {
     const quadrantCenter = this.getQuadrantCenter(this.draggingQuadrant.index);
     const initialAngle = Math.atan2(this.draggingQuadrant.initialY - quadrantCenter[1], this.draggingQuadrant.initialX - quadrantCenter[0]);
     const currentAngle = Math.atan2(pointer.y - quadrantCenter[1], pointer.x - quadrantCenter[0]);
-    const rotationAngle = Phaser.Math.RadToDeg(currentAngle - initialAngle);
+    let rotationAngle = Phaser.Math.RadToDeg(currentAngle - initialAngle);
+    rotationAngle = (rotationAngle + 360) % 360;
+    if (rotationAngle > 180) rotationAngle -= 360;
+
     return rotationAngle;
   }
  
@@ -883,48 +832,83 @@ class GameScene extends Phaser.Scene {
     this.draggingQuadrant = null;
     this.isDragging = false;
 
+    this.resetDraggingState = () => {
+      if (this.draggingQuadrant) {
+          this.rotateQuadrantVisual(this.draggingQuadrant.index, 0);
+          this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), 0);
+          this.isDragging = false;
+          this.draggingQuadrant = null;
+      }
+    };
+    
+    this.completeDragging = (pointer) => {
+        if (this.isDragging && this.draggingQuadrant) {
+            this.isDragging = false;
+            let angle = this.calculateRotationAngle(pointer);
+            const clockwise = angle > 0;
+            this.alpha = clockwise ? -1 : 1; // 1 CW
+            const angleThreshold = 45; // Threshold in degrees
+            if (Math.abs(angle) >= angleThreshold) {
+                quarter_rotation_sfx.play();
+                this.bo.rotate(this.draggingQuadrant.index, this.alpha)
+                this.revertRotation();
+                this.clear_marble();
+                this.draw_marble();
+                this.has_rotated = true;
+            } else {
+                this.revertRotation();
+            }
+            this.draggingQuadrant = null;
+        }
+    };
+
+    this.smoothClamp = (angle, min, max) => {
+      if (angle > max) {
+          return max;
+      } else if (angle < min) {
+          return min;
+      }
+      return angle;
+    };
+
     this.quadrants_drawings.forEach((quadrantImage, index) => {
       quadrantImage.setInteractive({ draggable: true });
       quadrantImage.setOrigin(0.5, 0.5);
     
       quadrantImage.on('pointerdown', (pointer) => {
-        if (this.has_placed && !this.has_rotated) {
-            this.isDragging = true;
-            this.draggingQuadrant = {index: this.getQuadrantIndex(pointer.x, pointer.y), initialX: pointer.x, initialY: pointer.y};
-        }
+          if (this.has_placed && !this.has_rotated) {
+              this.isDragging = true;
+              this.draggingQuadrant = {index: this.getQuadrantIndex(pointer.x, pointer.y), initialX: pointer.x, initialY: pointer.y};
+          }
       });
     
       quadrantImage.on('pointermove', (pointer) => {
-        if (this.isDragging && this.draggingQuadrant) {
-          let angle = this.calculateRotationAngle(pointer);
-          angle = Phaser.Math.Clamp(angle, -90, 90);
-          this.rotateQuadrantVisual(this.draggingQuadrant.index, angle);
-          this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), angle);
-        }
+          if (this.draggingQuadrant) {
+              let q = this.draggingQuadrant.index;
+              let center = this.getQuadrantCenter(q);
+              const range = Math.abs(pointer.x - center[0]) < 200.75 && Math.abs(pointer.y - center[1]) < 200.75;
+              if (range && pointer.x && pointer.y) {
+                  if (this.isDragging) {
+                      let angle = this.calculateRotationAngle(pointer);
+                      angle = this.smoothClamp(angle, -90, 90);
+                      this.rotateQuadrantVisual(this.draggingQuadrant.index, angle);
+                      this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), angle);
+                  }
+              } else {
+                  this.resetDraggingState();
+              } 
+          }   
+      });
+  
+      quadrantImage.on('pointerout', (pointer) => {
+          this.resetDraggingState();
       });
     
       quadrantImage.on('pointerup', (pointer) => {
-        if (this.isDragging && this.draggingQuadrant) {
-          this.isDragging = false;
-          let angle = this.calculateRotationAngle(pointer);
-          const clockwise = angle > 0;
-          this.alpha = clockwise ? -1 : 1; // 1 CW
-          const angleThreshold = 45; // Threshold in degrees
-          if (Math.abs(angle) >= angleThreshold) {
-            quarter_rotation_sfx.play();
-            this.bo.rotate(this.draggingQuadrant.index, this.alpha)
-            this.revertRotation();
-            this.clear_marble();
-            this.draw_marble();
-            this.has_rotated = true;
-          } else {
-            this.revertRotation();
-          }
-          this.draggingQuadrant = null;
-        }
+          this.completeDragging(pointer);
       });
     });
-
+    
     this.input.on('pointerup', (pointer) => {
       if (this.isAITurn) {
           console.log('AI is processing. No interaction allowed.');

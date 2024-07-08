@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-62c1232b3105.herokuapp.com';
+const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -111,7 +111,10 @@ class GameScene extends Phaser.Scene {
     const quadrantCenter = this.getQuadrantCenter(this.draggingQuadrant.index);
     const initialAngle = Math.atan2(this.draggingQuadrant.initialY - quadrantCenter[1], this.draggingQuadrant.initialX - quadrantCenter[0]);
     const currentAngle = Math.atan2(pointer.y - quadrantCenter[1], pointer.x - quadrantCenter[0]);
-    const rotationAngle = Phaser.Math.RadToDeg(currentAngle - initialAngle);
+    let rotationAngle = Phaser.Math.RadToDeg(currentAngle - initialAngle);
+    rotationAngle = (rotationAngle + 360) % 360;
+    if (rotationAngle > 180) rotationAngle -= 360;
+
     return rotationAngle;
   }
  
@@ -271,7 +274,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago-62c1232b3105.herokuapp.com');
+    this.socket = new WebSocket('ws://localhost:443');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
@@ -665,6 +668,45 @@ class GameScene extends Phaser.Scene {
     this.draggingQuadrant = null;
     this.isDragging = false;
 
+    this.resetDraggingState = () => {
+      if (this.draggingQuadrant) {
+          this.rotateQuadrantVisual(this.draggingQuadrant.index, 0);
+          this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), 0);
+          this.isDragging = false;
+          this.draggingQuadrant = null;
+      }
+    };
+    
+    this.completeDragging = (pointer) => {
+        if (this.isDragging && this.draggingQuadrant) {
+            this.isDragging = false;
+            let angle = this.calculateRotationAngle(pointer);
+            const clockwise = angle > 0;
+            this.alpha = clockwise ? -1 : 1; // 1 CW
+            const angleThreshold = 45; // Threshold in degrees
+            if (Math.abs(angle) >= angleThreshold) {
+                quarter_rotation_sfx.play();
+                this.bo.rotate(this.draggingQuadrant.index, this.alpha)
+                this.revertRotation();
+                this.clear_marble();
+                this.draw_marble();
+                this.has_rotated = true;
+            } else {
+                this.revertRotation();
+            }
+            this.draggingQuadrant = null;
+        }
+    };
+
+    this.smoothClamp = (angle, min, max) => {
+      if (angle > max) {
+          return max;
+      } else if (angle < min) {
+          return min;
+      }
+      return angle;
+    };
+
     // Making the quadrant images interactive and enabling drag-and-drop
     this.quadrants_drawings.forEach((quadrantImage, index) => {
       quadrantImage.setInteractive({ draggable: true });
@@ -678,12 +720,21 @@ class GameScene extends Phaser.Scene {
       });
     
       quadrantImage.on('pointermove', (pointer) => {
-        if (this.isDragging && this.draggingQuadrant) {
-          let angle = this.calculateRotationAngle(pointer);
-          angle = Phaser.Math.Clamp(angle, -90, 90);
-          this.rotateQuadrantVisual(this.draggingQuadrant.index, angle);
-          this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), angle);
-        }
+        if (this.draggingQuadrant) {
+            let q = this.draggingQuadrant.index;
+            let center = this.getQuadrantCenter(q);
+            const range = Math.abs(pointer.x - center[0]) < 200.75 && Math.abs(pointer.y - center[1]) < 200.75;
+            if (range && pointer.x && pointer.y) {
+                if (this.isDragging) {
+                    let angle = this.calculateRotationAngle(pointer);
+                    angle = this.smoothClamp(angle, -90, 90);
+                    this.rotateQuadrantVisual(this.draggingQuadrant.index, angle);
+                    this.rotateMarblesVisual(this.getMarblesInQuadrant(this.draggingQuadrant.index), angle);
+                }
+            } else {
+                this.resetDraggingState();
+            } 
+        }   
       });
     
       quadrantImage.on('pointerup', (pointer) => {
@@ -704,6 +755,10 @@ class GameScene extends Phaser.Scene {
           }
           this.draggingQuadrant = null;
         }
+      });
+
+      quadrantImage.on('pointerout', (pointer) => {
+        this.resetDraggingState();
       });
     });
 
