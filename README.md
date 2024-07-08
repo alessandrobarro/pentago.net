@@ -1,7 +1,7 @@
 # pentago.net
 
 # Play and test it right now
-Click on the following link http://www.pentago.net/ and start a game right the way!
+Click on the following link http://www.pentago.net/ (deprecated) and start a game right the way!
 You are welcome to report any bugs or issues by clicking on the "mail" icon at the top-left corner.
 NOTE: only devices such as Desktop, Mac, most of the tablets are supported. Mobile phones are NOT completely supported.
 
@@ -20,8 +20,9 @@ and WebSockets to handle connections both client and server side.
 - version 0.7 closed-alpha (RELEASED): The very first game-launch, addressed to testing, bug hunting and fixing
 - version 0.7.1 closed-alpha (RELEASED) Partial mobile support (g-win auto-rescaling),  responsive HTMLs, website and GUI re-designment
 - version 0.8.9 closed-beta (RELEASED): bug fixing, HTML dev, gameplay modification, code and display optimizations, DNS, mobile devices support
-- version 0.9 closed-beta (CURRENT): private games implementation, bug fixing, game optimization, DNS, mobile development
-- version 0.9.1 open-beta (NOT RELEASED): bug fixing, minor adjustments, open to public users
+- version 0.9 closed-beta (RELEASED): private games implementation, bug fixing, game optimization, DNS, mobile development
+- version 0.9.1 closed-beta (CURRENT): drag and drop quadrant rotation, AI singleplayer gamemode, graphics update
+- version 0.9.2 open-beta (NOT RELEASED): bug fixing, minor adjustments, open to public users
 
 # Credits
 - Full credits to Mindtwister (Martinex), the company responsible for the publishment of the board-game, and the invention of it itself
