@@ -11,7 +11,7 @@ import Board from './game-board.js';
 
 /*----------------------------------------Game init settings-----------------------------------------*/
 var HOST = location.origin.replace(/^http/, 'ws')
-const IP = 'pentago-62c1232b3105.herokuapp.com/';
+const IP = 'localhost';
 console.log('[DATA] Host: ', HOST);
 var el;
 const playername = localStorage.getItem("nickname");
@@ -274,7 +274,7 @@ class GameScene extends Phaser.Scene {
     };
     let flag = 0;
     let count = 0;
-    this.socket = new WebSocket('wss://pentago-62c1232b3105.herokuapp.com/');
+    this.socket = new WebSocket('ws://localhost:443');
     this.socket.addEventListener('open', (event) => {
       this.socket.send(JSON.stringify(initialConnectionMessage));
       console.log('Connected to the server');
@@ -391,7 +391,7 @@ class GameScene extends Phaser.Scene {
     /* Loads the game assets */
     this.load.spritesheet(
       "title",
-      "data/assets/img/title_game.png",
+      "images/title_game.png",
       {
         frameWidth: 137* 1.406,
         frameHeight: 40* 1.406
@@ -400,7 +400,7 @@ class GameScene extends Phaser.Scene {
     
     this.load.spritesheet(
       "time_label",
-      "data/assets/img/time_label.png",
+      "images/time_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 95* 1.406
@@ -409,7 +409,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "key_label",
-      "data/assets/img/key_label.png",
+      "images/key_label.png",
       {
         frameWidth: 320* 1.406,
         frameHeight: 40* 1.406
@@ -418,7 +418,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "white_label",
-      "data/assets/img/white_label.png",
+      "images/white_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 30* 1.406
@@ -427,7 +427,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "black_label",
-      "data/assets/img/black_label.png",
+      "images/black_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 30* 1.406
@@ -436,7 +436,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "timer",
-      "data/assets/img/timer.png",
+      "images/timer.png",
       {
         frameWidth: 72.4* 1.406,
         frameHeight: 72* 1.406,
@@ -445,7 +445,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "message",
-      "data/assets/img/message_label.png",
+      "images/message_label.png",
       {
         frameWidth: 450* 1.406,
         frameHeight: 30* 1.406,
@@ -454,7 +454,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "p1",
-      "data/assets/img/p1.png",
+      "images/p1.png",
       {
         frameWidth: 47* 1.406,
         frameHeight: 47* 1.406
@@ -463,7 +463,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "p2",
-      "data/assets/img/p2.png",
+      "images/p2.png",
       {
         frameWidth: 47* 1.406,
         frameHeight: 47* 1.406
@@ -472,7 +472,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "quarter_board",
-      "data/assets/img/quarter_board.png",
+      "images/quarter_board.png",
       {
         frameWidth: 395,
         frameHeight: 395
@@ -481,7 +481,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "white_square",
-      "data/assets/img/white_square.png",
+      "images/white_square.png",
       {
         frameWidth: 80* 1.406,
         frameHeight: 80* 1.406
@@ -490,7 +490,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "pass_on",
-      "data/assets/img/pass_on.png",
+      "images/pass_on.png",
       {
         frameWidth: 203* 1.406,
         frameHeight: 123* 1.406
@@ -499,7 +499,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "ra_on",
-      "data/assets/img/ra_on.png",
+      "images/ra_on.png",
       {
         frameWidth: 84* 1.406,
         frameHeight: 84* 1.406
@@ -508,7 +508,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "rc_on",
-      "data/assets/img/rc_on.png",
+      "images/rc_on.png",
       {
         frameWidth: 84* 1.406,
         frameHeight: 84* 1.406
@@ -517,7 +517,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "widget",
-      "data/assets/img/widget_label.png",
+      "images/widget_label.png",
       {
         frameWidth: 432* 1.406,
         frameHeight: 260* 1.406
@@ -526,7 +526,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "control",
-      "data/assets/img/control_label.png",
+      "images/control_label.png",
       {
         frameWidth: 275* 1.406,
         frameHeight: 315* 1.406
@@ -535,7 +535,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "moon",
-      "data/assets/img/moon.png",
+      "images/moon.png",
       {
         frameWidth: 21* 1.406,
         frameHeight: 30* 1.406
@@ -544,7 +544,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_1",
-      "data/assets/img/select_1.png",
+      "images/select_1.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -553,7 +553,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_2",
-      "data/assets/img/select_2.png",
+      "images/select_2.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -562,7 +562,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_3",
-      "data/assets/img/select_3.png",
+      "images/select_3.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -571,7 +571,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_4",
-      "data/assets/img/select_4.png",
+      "images/select_4.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -580,7 +580,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "names",
-      "data/assets/img/names.png",
+      "images/names.png",
       {
         frameWidth: 280* 1.406,
         frameHeight: 80* 1.406,
@@ -589,12 +589,12 @@ class GameScene extends Phaser.Scene {
              
     this.load.audio(
        "marble_placement",
-       "data/assets/audio/marble_placement_sfx.mp3"
+       "audio/marble_placement_sfx.mp3"
     );
     
     this.load.audio(
        "quarter_rotation",
-       "data/assets/audio/quarter_rotation_sfx.mp3"
+       "audio/quarter_rotation_sfx.mp3"
     );
   }
 

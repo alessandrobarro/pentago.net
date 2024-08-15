@@ -46,106 +46,169 @@ async function captureGameBoard(scene, x, y, width, height) {
 }
 
 /*------------------------------------------Minimax agent-----------------------------------------*/
-function minimax(board, depth, isMaximizingPlayer) {
+function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
   if (depth === 0 || board.check_winner() !== '-1') {
-      return { value: evaluate(board) }; // Return the heuristic value of the board
+      return { value: evaluate(board, isMaximizingPlayer ? '1' : '0') };
   }
 
   if (isMaximizingPlayer) {
       let maxEval = -Infinity;
       let bestMove = null;
-      for (let move of getAllPossibleMoves(board, 1)) {
+      const possibleMoves = getAllPossibleMoves(board, '1');  
+      for (let move of possibleMoves) {
           makeMove(board, move);
-          let evaluation = minimax(board, depth - 1, false);
+          let evaluation = minimax(board, depth - 1, alpha, beta, false);
           undoMove(board, move);
-
           if (evaluation.value > maxEval) {
               maxEval = evaluation.value;
               bestMove = move;
+          }
+          alpha = Math.max(alpha, evaluation.value);
+          if (beta <= alpha) {
+              break;  // Pruning
           }
       }
       return { value: maxEval, move: bestMove };
   } else {
       let minEval = Infinity;
       let bestMove = null;
-      for (let move of getAllPossibleMoves(board, -1)) {
+      const possibleMoves = getAllPossibleMoves(board, '0'); 
+      for (let move of possibleMoves) {
           makeMove(board, move);
-          let evaluation = minimax(board, depth - 1, true);
+          let evaluation = minimax(board, depth - 1, alpha, beta, true);
           undoMove(board, move);
-
           if (evaluation.value < minEval) {
               minEval = evaluation.value;
               bestMove = move;
+          }
+          beta = Math.min(beta, evaluation.value);
+          if (beta <= alpha) {
+              break;  // Pruning
           }
       }
       return { value: minEval, move: bestMove };
   }
 }
 
-function evaluate(board) {
+function evaluate(board, player) {
   let score = 0;
-  score += evaluateLines(board, 1); // Calcolo per il giocatore 1
-  score -= evaluateLines(board, 0); // Calcolo per il giocatore -1
-
-  // Bonus aggiuntivo per il controllo delle caselle centrali
-  if (board.config[1][1] === '1' || board.config[1][4] === '1' ||
-      board.config[4][1] === '1' || board.config[4][4] === '1') {
-      score += 50;
-  }
-  if (board.config[1][1] === '0' || board.config[1][4] === '0' ||
-      board.config[4][1] === '0' || board.config[4][4] === '0') {
-      score -= 50;
-  }
-  //console.log(score)
+  score += earlyGameEvaluation(board, player);
+  score += blockOpponentSequences(board, player);
+  score += enhanceOwnSequences(board, player);
   return score;
 }
 
-function evaluateLines(board, player) {
-  let total = 0;
-  const size = 6; // Dimensione del tabellone Pentago
-  let lineCount;
-
-  // Valutazione delle linee orizzontali
-  for (let i = 0; i < size; i++) {
-      lineCount = countConsecutive(board.config[i], player);
-      total += lineCount;
+function earlyGameEvaluation(board, player) {
+  const centerPositions = [[1, 1], [1, 4], [4, 1], [4, 4]]; 
+  let score = 0;
+  for (let pos of centerPositions) {
+      if (board.config[pos[0]][pos[1]] === player.toString()) {
+          score += 30; 
+      }
   }
+  return score;
+}
 
-  // Valutazione delle linee verticali
+function blockOpponentSequences(board, player) {
+  let score = 0;
+  let opponent = player === '1' ? '0' : '1';
+
+  // Controlla ogni possibile linea nel tabellone
+  score -= evaluateLinesForThreat(board, opponent, 3) * 100; 
+  score -= evaluateLinesForThreat(board, opponent, 4) * 200;
+  return score;
+}
+
+function enhanceOwnSequences(board, player) {
+  return evaluateLinesForPotential(board, player, 3) * 50;
+}
+
+function evaluateLinesForThreat(board, player, sequenceLength) {
+  const size = 6;
+  let threatLevel = 0;
+
+  let lines = [];
+  for (let i = 0; i < size; i++) {
+      lines.push(board.config[i]);
+  }
   for (let j = 0; j < size; j++) {
       let column = [];
       for (let i = 0; i < size; i++) {
           column.push(board.config[i][j]);
       }
-      lineCount = countConsecutive(column, player);
-      total += lineCount;
+      lines.push(column);
   }
-
-  // Valutazione delle linee diagonali (principali e secondarie)
-  let diagonals = [ [], [] ];
+  let diag1 = [], diag2 = [];
   for (let i = 0; i < size; i++) {
-      diagonals[0].push(board.config[i][i]);             // Diagonale principale
-      diagonals[1].push(board.config[i][size - 1 - i]);  // Diagonale secondaria
+      diag1.push(board.config[i][i]);
+      diag2.push(board.config[i][size - 1 - i]);
   }
-  for (let diag of diagonals) {
-      lineCount = countConsecutive(diag, player);
-      total += lineCount;
+  lines.push(diag1, diag2);
+
+  for (let line of lines) {
+      threatLevel += countConsecutiveThreats(line, player, sequenceLength);
   }
 
-  return total;
+  return threatLevel;
 }
 
-function countConsecutive(line, player) {
-  let maxCount = 0, count = 0;
-  for (let value of line) {
-      if (value === player.toString()) {
+function countConsecutiveThreats(line, player, sequenceLength) {
+  let count = 0, maxThreat = 0;
+  for (let i = 0; i < line.length; i++) {
+      if (line[i] === player) {
           count++;
-          maxCount = Math.max(maxCount, count);
+          if (count === sequenceLength && (i + 1 < line.length && line[i + 1] === '-1' || i - count >= 0 && line[i - count] === '-1')) {
+              maxThreat++;
+          }
       } else {
           count = 0;
       }
   }
-  return Math.pow(5, maxCount);
+  return maxThreat;
+}
+
+function evaluateLinesForPotential(board, player, sequenceLength) {
+  const size = 6;
+  let potentialLevel = 0;
+
+  let lines = [];
+  for (let i = 0; i < size; i++) {
+      lines.push(board.config[i]);
+  }
+  for (let j = 0; j < size; j++) {
+      let column = [];
+      for (let i = 0; i < size; i++) {
+          column.push(board.config[i][j]);
+      }
+      lines.push(column);
+  }
+  let diag1 = [], diag2 = [];
+  for (let i = 0; i < size; i++) {
+      diag1.push(board.config[i][i]);
+      diag2.push(board.config[i][size - 1 - i]);
+  }
+  lines.push(diag1, diag2);
+
+  for (let line of lines) {
+      potentialLevel += countConsecutivePotentials(line, player, sequenceLength);
+  }
+
+  return potentialLevel;
+}
+
+function countConsecutivePotentials(line, player, sequenceLength) {
+  let count = 0, maxPotential = 0;
+  for (let i = 0; i < line.length; i++) {
+      if (line[i] === player) {
+          count++;
+          if (count === sequenceLength && (i + 1 < line.length && line[i + 1] === '-1' || i - count >= 0 && line[i - count] === '-1')) {
+              maxPotential++;
+          }
+      } else {
+          count = 0;
+      }
+  }
+  return maxPotential;
 }
 
 function getAllPossibleMoves(board, player) {
@@ -174,19 +237,17 @@ function undoMove(board, move) {
   board.config[move.i][move.j] = '-1';
 }
 
-function chooseAIMove(board, difficulty, moveCount) {
+function chooseAIMove(board, difficulty) {
+  let depth;
   switch (difficulty) {
-      case 'easy':
-        return minimax(board, 2, true, -Infinity, Infinity).move;
-      case 'medium':
-          return minimax(board, 3, true, -Infinity, Infinity).move;
-      case 'hard':
-          return minimax(board, 5, true, -Infinity, Infinity).move;
-      case 'expert':
-          return minimax(board, 5, true, -Infinity, Infinity).move;
-      case 'god':
-          return minimax(board, 6, true, -Infinity, Infinity).move;
+      case 'easy': depth = 2; break;
+      case 'medium': depth = 3; break;
+      case 'hard': depth = 4; break;
+      case 'expert': depth = 5; break;
+      case 'god': depth = 6; break;
+      default: depth = 3;
   }
+  return minimax(board, depth, -Infinity, Infinity, true).move;
 }
 
 function chooseRandomMove(board) {
@@ -492,6 +553,7 @@ class GameScene extends Phaser.Scene {
   }
   
   async performAIMove() {
+
     this.isAITurn = true;
     this.lastTick = Date.now();
     this.pausePlayerTimer();
@@ -501,7 +563,7 @@ class GameScene extends Phaser.Scene {
     this.redraw_window();
     await this.delay(500);
 
-    let move = chooseAIMove(this.bo, diff, this.movecount);
+    let move = chooseAIMove(this.bo, diff);
     console.log(move)
     this.bo.config[move.i][move.j] = '1';
     this.draw_marble();
@@ -540,7 +602,7 @@ class GameScene extends Phaser.Scene {
     /* Loads the game assets */
     this.load.spritesheet(
       "title",
-      "data/assets/img/title_game.png",
+      "images/title_game.png",
       {
         frameWidth: 137* 1.406,
         frameHeight: 40* 1.406
@@ -549,7 +611,7 @@ class GameScene extends Phaser.Scene {
     
     this.load.spritesheet(
       "time_label",
-      "data/assets/img/time_label.png",
+      "images/time_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 95* 1.406
@@ -558,7 +620,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "key_label",
-      "data/assets/img/key_label.png",
+      "images/key_label.png",
       {
         frameWidth: 320* 1.406,
         frameHeight: 40* 1.406
@@ -567,7 +629,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "white_label",
-      "data/assets/img/white_label.png",
+      "images/white_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 30* 1.406
@@ -576,7 +638,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "black_label",
-      "data/assets/img/black_label.png",
+      "images/black_label.png",
       {
         frameWidth: 200* 1.406,
         frameHeight: 30* 1.406
@@ -585,7 +647,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "timer",
-      "data/assets/img/timer.png",
+      "images/timer.png",
       {
         frameWidth: 72.4* 1.406,
         frameHeight: 72* 1.406,
@@ -594,7 +656,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "message",
-      "data/assets/img/message_label.png",
+      "images/message_label.png",
       {
         frameWidth: 450* 1.406,
         frameHeight: 30* 1.406,
@@ -603,7 +665,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "p1",
-      "data/assets/img/p1.png",
+      "images/p1.png",
       {
         frameWidth: 47* 1.406,
         frameHeight: 47* 1.406
@@ -612,7 +674,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "p2",
-      "data/assets/img/p2.png",
+      "images/p2.png",
       {
         frameWidth: 47* 1.406,
         frameHeight: 47* 1.406
@@ -621,7 +683,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "quarter_board",
-      "data/assets/img/quarter_board.png",
+      "images/quarter_board.png",
       {
         frameWidth: 395,
         frameHeight: 395
@@ -630,7 +692,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "white_square",
-      "data/assets/img/white_square.png",
+      "images/white_square.png",
       {
         frameWidth: 80* 1.406,
         frameHeight: 80* 1.406
@@ -639,7 +701,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "pass_on",
-      "data/assets/img/pass_on.png",
+      "images/pass_on.png",
       {
         frameWidth: 203* 1.406,
         frameHeight: 123* 1.406
@@ -648,7 +710,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "ra_on",
-      "data/assets/img/ra_on.png",
+      "images/ra_on.png",
       {
         frameWidth: 84* 1.406,
         frameHeight: 84* 1.406
@@ -657,7 +719,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "rc_on",
-      "data/assets/img/rc_on.png",
+      "images/rc_on.png",
       {
         frameWidth: 84* 1.406,
         frameHeight: 84* 1.406
@@ -666,7 +728,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "widget",
-      "data/assets/img/widget_label.png",
+      "images/widget_label.png",
       {
         frameWidth: 432* 1.406,
         frameHeight: 260* 1.406
@@ -675,7 +737,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "control",
-      "data/assets/img/control_label.png",
+      "images/control_label.png",
       {
         frameWidth: 275* 1.406,
         frameHeight: 315* 1.406
@@ -684,7 +746,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "moon",
-      "data/assets/img/moon.png",
+      "images/moon.png",
       {
         frameWidth: 21* 1.406,
         frameHeight: 30* 1.406
@@ -693,7 +755,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_1",
-      "data/assets/img/select_1.png",
+      "images/select_1.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -702,7 +764,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_2",
-      "data/assets/img/select_2.png",
+      "images/select_2.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -711,7 +773,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_3",
-      "data/assets/img/select_3.png",
+      "images/select_3.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -720,7 +782,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "select_4",
-      "data/assets/img/select_4.png",
+      "images/select_4.png",
       {
         frameWidth: 295* 1.406,
         frameHeight: 295* 1.406
@@ -729,7 +791,7 @@ class GameScene extends Phaser.Scene {
 
     this.load.spritesheet(
       "names",
-      "data/assets/img/names.png",
+      "images/names.png",
       {
         frameWidth: 280* 1.406,
         frameHeight: 80* 1.406,
@@ -738,12 +800,12 @@ class GameScene extends Phaser.Scene {
              
     this.load.audio(
        "marble_placement",
-       "data/assets/audio/marble_placement_sfx.mp3"
+       "audio/marble_placement_sfx.mp3"
     );
     
     this.load.audio(
        "quarter_rotation",
-       "data/assets/audio/quarter_rotation_sfx.mp3"
+       "audio/quarter_rotation_sfx.mp3"
     );
   }
 
