@@ -1,362 +1,130 @@
+<!-- 
+---------------------------------------
+           www.pentago.net
+---------------------------------------
+
+https://github.com/basedryo/pentago.net
+-->
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Homepage</title>
-
-    <link rel="shortcut icon" href="./images/favicon.png" type="image/x-icon" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-      integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="./css/style.css" />
-
-    <style>
-      @font-face {
-        font-family: "Euphemia";
-        src: url("./font/euphemia.ttf") format("truetype");
-      }
-
-      * {
-        font-family: "Euphemia", Arial, sans-serif;
-      }
-    </style>
-
-    <script src="./js/app.js" defer></script>
-    <script src="game-settings.js"></script>
-  </head>
+    <head>
+      <title>Pentago.net</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="apple-touch-icon" sizes="180x180" href="data/assets/img/apple-touch-icon.png">
+      <link rel="icon" type="image/x-icon" href="/data/assets/img/favicon.png">
+      <link rel="stylesheet" href="index-style.css">
+      <link href="jQueryAssets/jquery.ui.core.min.css" rel="stylesheet" type="text/css">
+      <link href="jQueryAssets/jquery.ui.theme.min.css" rel="stylesheet" type="text/css">
+      <link href="jQueryAssets/jquery.ui.slider.min.css" rel="stylesheet" type="text/css">
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797" crossorigin="anonymous"></script>
+      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+      <script src="jQueryAssets/jquery-1.11.1.min.js"></script>
+      <script src="jQueryAssets/jquery.ui-1.10.4.slider.min.js"></script>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797"
+     crossorigin="anonymous"></script>
+      <script type="text/javascript">
+        (function () {
+          emailjs.init("E4qHL5mAMjkm7U8Qa");
+        })();
+      </script>
+      <script>
+        function showTuPopup() {
+          var popup = document.getElementById("tu-myPopup");
+          popup.classList.toggle("show");
+        }
+      </script>
+    </head>
   <body>
-    <!-- wrapper -->
-    <div class="relative flex min-h-screen text-white bg-bodyBg">
-      <!-- Content Part -->
-      <div class="flex flex-col items-center xl:w-[75%] 2xl:w-4/5 px-5 py-24">
-        <!-- Banner -->
-        <div
-          class="flex flex-col-reverse items-center justify-center w-full max-w-6xl gap-10 lg:flex-row"
-        >
-          <div class="text-justify lg:w-7/12 xl:w-full">
-            <h1
-              class="mb-4 text-3xl font-bold text-center md:text-5xl lg:text-left"
-            >
-              Ready for a twist?
-            </h1>
-            <p
-              class="my-6 font-medium lg:leading-[180%] lg:text-base text-sm lg:text-left text-center"
-            >
-              Pentago is a fast-paced strategy game where players aim to create
-              a row of five marbles before their opponent can. The twist? After
-              placing each marble, you'll have to twist one of the game's
-              quadrants. Join a game now!
-            </p>
-            <div class="flex justify-center w-full gap-3 mt-5 md:Lgap-6">
-              <a
-                href="#"
-                onclick="startGamePublic(); return false;"
-                class="w-full duration-200 hover:scale-95"
-              >
-                <img
-                  src="./images/publicbtn.png"
-                  alt="Public Game"
-                  class="w-full h-auto cursor-pointer lg:w-42 lg:h-14"
-                />
-              </a>
-              <a
-                href="#"
-                onclick="openPrivateGamePopup(); return false;"
-                class="w-full duration-200 hover:scale-95"
-              >
-                <img
-                  src="./images/privatebtn.png"
-                  alt="Play Private"
-                  class="w-full h-auto cursor-pointer lg:w-42 lg:h-14"
-                />
-              </a>
-              <a
-                href="#"
-                onclick="toggleDifficultyOptions(); return false;"
-                class="w-full duration-200 hover:scale-95"
-              >
-                <img
-                  src="./images/aibtn.png"
-                  alt="AI Game"
-                  class="w-full h-auto cursor-pointer lg:w-42 lg:h-14"
-                />
-              </a>
-              <div id="ai-difficulty-options" class="difficulty-options">
-                <form id="difficulty-form">
-                    <label><input type="radio" name="difficulty" value="easy" checked> Easy</label><br>
-                    <label><input type="radio" name="difficulty" value="medium"> Medium</label><br>
-                    <label><input type="radio" name="difficulty" value="hard"> Hard</label><br>
-                    <button type="button" onclick="startGameAI()">Start Game</button>
-                </form>
+    <div class="rotate-device" id="rotate-device">
+        <center>
+          <img src="data/assets/img/rotate.png">
+        </center>
+    </div>
+    
+
+    <!-- MAIN PAGE MAIN SECTION -->
+    <section class="main" id="main">
+      <div class="container">
+        <img src="data/assets/img/title.PNG" class="title" id="title"/>
+        <br>
+        <div class="settings" id="settings">
+          <div class="pop" id="pop">
+            <input type="text" class="playername" id="playername" name="Name" placeholder="Enter your nickname" maxlength="12" required>
+            <img class="buttonImage" id="buttonImage" src="data/assets/img/public_game.PNG" alt="Image 1" onclick="toggleImage()" title="Gamemode: Public">
+            <br>
+            <br>
+            <div class="private-game-popup" id="private-game-popup">
+              <div class="private-game-popup-content">
+                <form id="g-form" class="g-form" onsubmit="event.preventDefault(); join_private_game();">
+                  <input class="formg" id="formg" type="text" placeholder="Room number" maxlength="6" required>
+                  <button type="submit" id="g-button" class="g-button">Join game</button>
+                </form>                
+                  <br>
+                  <a href="pentago-gamepage.html" target="_blank"><button id="c-button" class="c-button" onclick="setNickname(); create_private_game();">Create a custom game</button></a>
+                  <br>
+                  <span class="close" id="close" onclick="closePrivateGamePopup()">&times;</span>
               </div>
             </div>
           </div>
-
-          <div class="lg:w-5/12 xl:w-full">
-            <video
-              src="./video/fp_video.mp4"
-              playinsline
-              muted
-              loop
-              autoplay
-              class="w-full rounded-2xl"
-            ></video>
-          </div>
         </div>
+        <button class="playbtn" id="playbtn" style="background-image: url('data/assets/img/play_button.PNG');"></button>
+        <script>
+             let imageState = 1;
+             var gType = '0';
+             console.log("[DATA] Default gamemode is set to public: ", gType);
+             function toggleImage() {
+               const buttonImage = document.getElementById('buttonImage');
+               if (imageState === 1) {
+                 buttonImage.src = 'data/assets/img/private_game.PNG';
+                 buttonImage.alt = 'Image 2';
+                 buttonImage.title = "Gamemode: Private";
+                 imageState = 2;
+                 gType = '1';
+                 console.log("[DATA] Gamemode changed to private: ", gType);
+               } else {
+                 buttonImage.src = 'data/assets/img/public_game.PNG';
+                 buttonImage.alt = 'Image 1';
+                 buttonImage.title = "Gamemode: Public";
+                 imageState = 1;
+                 gType = '0';
+                 console.log("[DATA] Gamemode changed to public: ", gType);
+               }
+             }
 
-        <!-- Box Content -->
-        <div
-          class="flex flex-col-reverse items-center w-full max-w-6xl gap-6 px-6 py-8 mt-10 md:gap-12 md:px-12 rounded-xl lg:mt-20 bg-sidebarBg md:flex-row"
-        >
-          <!-- left -->
-          <div class="w-full md:w-7/12">
-            <h1
-              class="text-2xl font-bold text-center underline md:text-3xl mb-7 underline-offset-8 lg:text-left"
-            >
-              "An award winning concept"
-            </h1>
-
-            <p
-              class="text-sm text-center lg:leading-relaxed lg:text-base lg:text-left"
-            >
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Natus
-              molestiae vitae aut harum quam aliquid culpa ab perspiciatis
-              assumenda veniam, nostrum, libero voluptatem magnam ex, nulla
-              autem alias error quos enim praesentium reprehenderit quasi.
-              Consequuntur nobis doloribus expedita iusto explicabo vero
-              distinctio inventore voluptatibus quo? Veritatis autem voluptas
-              expedita sit dignissimos, inventore unde id consectetur voluptatem
-              laborum!
-            </p>
-          </div>
-
-          <!-- right -->
-          <div class="w-full md:w-5/12">
-            <img
-              src="./images/favicon.png"
-              alt="image"
-              class="duration-200 hover:scale-95"
-            />
-          </div>
-        </div>
-
-        <!-- Box Content -->
-        <div
-          class="flex flex-col items-center w-full max-w-6xl gap-6 px-6 py-8 mt-10 md:gap-12 md:flex-row md:px-12 rounded-xl lg:mt-20 bg-sidebarBg"
-        >
-          <!-- left -->
-          <div class="w-full md:w-5/12">
-            <img
-              src="./images/boarddemo.png"
-              alt="image"
-              class="duration-200 hover:scale-95"
-            />
-          </div>
-
-          <!-- right -->
-          <div class="w-full md:w-7/12">
-            <h1
-              class="text-2xl font-bold text-center underline md:text-3xl mb-7 underline-offset-8 lg:text-left"
-            >
-              More Content
-            </h1>
-
-            <p
-              class="text-sm text-center lg:leading-relaxed lg:text-base lg:text-left"
-            >
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Natus
-              molestiae vitae aut harum quam aliquid culpa ab perspiciatis
-              assumenda veniam, nostrum, libero voluptatem magnam ex, nulla
-              autem alias error quos enim praesentium reprehenderit quasi.
-              Consequuntur nobis doloribus expedita iusto explicabo vero
-              distinctio inventore voluptatibus quo? Veritatis autem voluptas
-              expedita sit dignissimos, inventore unde id consectetur voluptatem
-              laborum! Vel dolores veniam, aut nisi ex quibusdam eligendi
-              soluta! Molestias eos modi iusto dolores nihil distinctio ipsa,
-              incidunt neque, similique, placeat unde error fuga commodi
-              mollitia est doloremque natus corrupti itaque cupiditate dolor!
-              Facere ab beatae enim libero est rerum, eveniet nam inventore.
-            </p>
-          </div>
-        </div>
-
-        <!-- Guideline Videos -->
-        <div class="w-full max-w-6xl rounded-md mt-14 lg:mt-20">
-          <h2 class="text-3xl font-bold text-center">Guidelines to start</h2>
-
-          <!-- Grid container -->
-          <div class="grid grid-cols-1 gap-8 mt-10 md:grid-cols-2">
-            <div>
-              <iframe
-                class="iframe"
-                width="100%"
-                height="350"
-                src="https://www.youtube.com/embed/OCSbzArwB10?si=T6YagGeh3mOzgRdu"
-                title="YouTube video player"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-                style="border-radius: 12px"
-              ></iframe>
-            </div>
-
-            <div>
-              <iframe
-                class="iframe"
-                width="100%"
-                height="350"
-                src="https://www.youtube.com/embed/P4fCFom_KzI?si=6JqACAlV1y1BCDBj"
-                title="YouTube video player"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-                style="border-radius: 12px"
-              ></iframe>
-            </div>
-
-            <div>
-              <iframe
-                class="iframe"
-                width="100%"
-                height="350"
-                src="https://www.youtube.com/embed/TXVHBv9MS9M?si=LPBW3PyVEHZxyv7H"
-                title="YouTube video player"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-                style="border-radius: 12px"
-              ></iframe>
-            </div>
-
-            <div>
-              <iframe
-                class="iframe"
-                width="100%"
-                height="350"
-                src="https://www.youtube.com/embed/lfTVvUZO4GM?si=v_NL9OgiNOokRdAM"
-                title="YouTube video player"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-                style="border-radius: 12px"
-              ></iframe>
-            </div>
-          </div>
-        </div>
+             document.getElementById('playbtn').addEventListener('click', function (event) {
+               setNickname();
+               if (!nickname || nickname === '') {
+                 event.preventDefault();
+                 alert('Please enter a valid nickname.');
+                 return;
+               }
+               if (gType === '0') {
+                 play_public_game();
+                 window.open("pentago-gamepage.html", "_blank");
+               } else if (gType === '1') {
+                 openPrivateGamePopup();
+                 event.preventDefault();
+               }
+             });
+           </script>
+        <script>
+          function openPrivateGamePopup() {
+            event.preventDefault();
+            var popup = document.getElementById("private-game-popup");
+            popup.style.display = "block";
+            popup.style.position = "absolute";
+          }
+          function closePrivateGamePopup() {
+            event.preventDefault();
+            var popup = document.getElementById("private-game-popup");
+            popup.style.display = "none";
+          }
+        </script>
+        <br>
       </div>
-
-      <!-- Sidebar Part -->
-      <div
-        id="sidebar"
-        class="fixed top-0 right-[-100%] xl:right-0 flex flex-col justify-start h-screen text-center w-[250px] md:w-[350px] xl:w-3/12 2xl:w-1/5 bg-sidebarBg z-[99]"
-      >
-        <img src="./images/title.PNG" class="w-3/5 mx-auto my-10" />
-
-        <div class="flex flex-col w-full gap-2">
-          <a
-            href="#"
-            class="w-full py-5 font-semibold text-white transition-all hover:bg-bodyBg"
-            >Home</a
-          >
-          <a
-            href="#"
-            class="w-full py-5 font-semibold text-white transition-all hover:bg-bodyBg"
-            >How to play</a
-          >
-          <a
-            href="#"
-            class="w-full py-5 font-semibold text-white transition-all hover:bg-bodyBg"
-            >Community</a
-          >
-          <a
-            href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support"
-            class="w-full py-5 font-semibold text-white transition-all hover:bg-bodyBg"
-            >Contact</a
-          >
-          <a
-            href="#"
-            class="w-full py-5 font-semibold text-white transition-all hover:bg-bodyBg"
-            >Subscribe</a
-          >
-        </div>
-
-        <div class="pb-10 mt-auto">
-          <div class="flex justify-center gap-4 my-2">
-            <a href="#" target="_blank" class="mx-1">
-              <img
-                src="./images/twitch.png"
-                alt="Icon 1"
-                class="h-auto duration-200 w-7 hover:-translate-y-2"
-              />
-            </a>
-            <a href="#" target="_blank" class="mx-1">
-              <img
-                src="./images/yt.png"
-                alt="Icon 2"
-                class="h-auto duration-200 w-7 hover:-translate-y-2"
-              />
-            </a>
-            <a href="#" target="_blank" class="mx-1">
-              <img
-                src="./images/tiktok.png"
-                alt="Icon 3"
-                class="h-auto duration-200 w-7 hover:-translate-y-2"
-              />
-            </a>
-          </div>
-
-          <p class="pt-4 text-sm font-semibold">© 2024 Pentago.net</p>
-        </div>
-      </div>
-
-      <!-- Hamburger Menu -->
-      <div>
-        <div id="menu-open" class="absolute z-10 right-4 top-4">
-          <i class="text-2xl text-white fa-solid fa-bars-staggered"></i>
-        </div>
-
-        <div id="menu-close" class="absolute z-10 hidden left-4 top-4">
-          <i class="text-2xl text-white fa-solid fa-xmark"></i>
-        </div>
-      </div>
-
-      <!-- Overlay -->
-      <div
-        id="overlay"
-        class="fixed inset-0 hidden bg-black bg-opacity-70"
-      ></div>
-
-      <div
-        id="loader"
-        class="fixed inset-0 bg-bodyBg z-[9999] flex items-center justify-center"
-      >
-        <span class="loader">Ready for a twist</span>
-      </div>
-    </div>
-
-    <div class="private-game-popup" id="private-game-popup">
-      <div class="private-game-popup-content">
-          <form id="g-form" class="g-form" onsubmit="event.preventDefault(); joinGamePrivate();">
-              <input class="formg" id="formg" type="text" placeholder="Room number" maxlength="6" required>
-              <button type="submit" id="g-button" class="g-button">Join a private game</button>
-          </form>                
-          <br>
-          <a href="pentago-gamepage.html" target="_blank">
-              <button id="c-button" class="c-button" onclick="startGamePrivate();">Create a private game</button>
-          </a>
-          <br>
-          <span class="close" id="close" onclick="closePrivateGamePopup()">&times;</span>
-      </div>
-    </div>
+    </section>
   </body>
+  <script src="game-settings.js"></script>
 </html>
