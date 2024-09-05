@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/data/assets/img/favicon.png">
+    <title>Pentago.net</title>
+    <style>
+      body {
+        color: white;
+        background-color: #232323;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+        overflow-y: hidden;
+      }
+      p.title {
+        color: white;
+        width: 100%;
+        height: auto;
+        font-weight: bolder;
+        font-size: larger;
+      }
+      img.title {
+        width: 15%;
+        height: auto;
+        text-align: center;
+        justify-content: center;
+        margin-top: 2%;
+        margin-bottom: 2%;
+      }
+      img.screenshot {
+        width: 20%;
+        height: auto;
+      }
+      p.close {
+        color: white;
+        font-size: small;
+        text-align: center;
+      }
+      .container {
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .content {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .stats {
+        color: white;
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+      }
+      .coming-soon {
+        color: white;
+        font-size: small;
+        font-style: italic;
+        text-align: left;
+      }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797"
+     crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="container" id="container">
+      <img src="data/assets/img/title.PNG" class="title" />
+      <br>
+      <center><p class="title">You Lost!</p></center>
+      <br>
+      <div class="content">
+        <img id="game-board-screenshot" src="" alt="Game board screenshot" class="screenshot"/>
+        <div class="stats">
+          <p>Game statistics:</p>
+          <p class="coming-soon">Coming soon</p>
+        </div>
+      </div>
+      <br>
+      <p class="close">You can close this tab</p>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const gameBoardScreenshot = sessionStorage.getItem('gameBoardScreenshot');
+        const imgElement = document.getElementById('game-board-screenshot');
+
+        if (gameBoardScreenshot) {
+          imgElement.src = gameBoardScreenshot;
+        } else {
+          imgElement.alt = 'Screenshot not available';
+        }
+      });
+    </script>
+  </body>
+</html>

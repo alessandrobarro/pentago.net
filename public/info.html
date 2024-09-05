@@ -1,0 +1,195 @@
+<!--
+---------------------------------------
+           www.pentago.net
+---------------------------------------
+
+https://github.com/basedryo/pentago.net
+-->
+
+<html>
+        <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Pentago.net</title>
+                <style>
+                        /*ANIMATIONS*/
+                        @-webkit-keyframes slide-bottom {0% {-webkit-transform: translateY(0);transform: translateY(0);}100% {-webkit-transform: translateY(15px);transform: translateY(15px);}}
+                        @keyframes slide-bottom {0% {-webkit-transform: translateY(0);transform: translateY(0);}100% {-webkit-transform: translateY(15px);transform: translateY(15px);}}
+                        @-webkit-keyframes bounce-in-top {0% {-webkit-transform: translateY(-500px);transform: translateY(-500px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;opacity: 0;}38% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;opacity: 1;}55% {-webkit-transform: translateY(-65px);transform: translateY(-65px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}72% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}81% {-webkit-transform: translateY(-28px);transform: translateY(-28px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}90% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}95% {-webkit-transform: translateY(-8px);transform: translateY(-8px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}100% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}}    
+                        @keyframes bounce-in-top {0% {-webkit-transform: translateY(-500px);transform: translateY(-500px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;opacity: 0;}38% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;opacity: 1;}55% {-webkit-transform: translateY(-65px);transform: translateY(-65px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}72% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}81% {-webkit-transform: translateY(-28px);transform: translateY(-28px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}90% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}95% {-webkit-transform: translateY(-8px);transform: translateY(-8px);-webkit-animation-timing-function: ease-in;animation-timing-function: ease-in;}100% {-webkit-transform: translateY(0);transform: translateY(0);-webkit-animation-timing-function: ease-out;animation-timing-function: ease-out;}}
+                        @-webkit-keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}@keyframes slide-in-bottom {0%{-webkit-transform: translateY(1000px);transform: translateY(1000px);opacity: 0;}100%{-webkit-transform: translateY(0);transform: translateY(0);opacity: 1;}}
+                        @-webkit-keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}@keyframes slide-in-blurred-top{0%{-webkit-transform:translateY(-1000px) scaleY(2.5) scaleX(.2);transform:translateY(-1000px) scaleY(2.5) scaleX(.2);-webkit-transform-origin:50% 0;transform-origin:50% 0;-webkit-filter:blur(40px);filter:blur(40px);opacity:0}100%{-webkit-transform:translateY(0) scaleY(1) scaleX(1);transform:translateY(0) scaleY(1) scaleX(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-filter:blur(0);filter:blur(0);opacity:1}}    
+                        @-webkit-keyframes fade-in {0%{opacity: 0;}100% {opacity: 1;}}@keyframes fade-in{0%{opacity: 0;}100%{opacity: 1;}}
+                        @-webkit-keyframes fadeIn{from{opacity: 0;}to{opacity: 1;}}@keyframes fadeIn {from {opacity: 0;}to{opacity:1 ;}}
+
+                        /*
+                        -----------------------------------------------
+                        * Animations generated by Animista
+                        * Licensed under FreeBSD License.
+                        * See http://animista.net/license for more info. 
+                        * w: http://animista.net, t: @cssanimista
+                        * ---------------------------------------------- 
+                        */
+                        body {
+                                font-family: Arial, Helvetica, sans-serif;
+                                color: #fff;
+                                display: flex;
+                                flex-direction: column;
+                                background-color: #232323;
+                                margin-top: 0px;
+                                margin-right: 0px;
+                                margin-bottom: 0px;
+                                margin-left: 0px;
+                                font-style: normal;
+                                font-weight: 200;
+                                height: 100%;
+                                overflow-x: hidden;
+                                text-align: center;
+                        }
+                        link {
+                                color: blue;
+                                text-decoration: underline;
+                        }
+                        @media screen and (max-width: 600px) {
+                                .title {
+                                        width: 50%;
+                                        height: auto;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                }
+                                .menu {
+                                        font-size: 24px;
+                                        text-align: center;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin-bottom: 15px;
+                                }
+                        }
+
+                        @media screen and (min-width: 601px) {
+                                .title {
+                                        width: 20%;
+                                        height: auto;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                }
+                                .menu {
+                                        margin-right: 2%;
+                                        font-size: 24px;
+                                        text-align: right;
+                                        align-items: right;
+                                        justify-content: right;
+                                        margin-bottom: 15px;
+                                }
+                        }
+
+                        /* MENU & TOOLBAR */
+                        .home {
+                                text-align: right;
+                                margin-top: 1.5%;
+                                margin-left: 1.5%;
+                                display: inline-block;
+                                -webkit-animation:slide-in-blurred-top 1.8s;animation:slide-in-blurred-top 1.8s;
+                        }
+                        .tutorial {
+                                text-align: right;
+                                margin-top: 1.5%;
+                                margin-left: 1.5%;
+                                display: inline-block;
+                                -webkit-animation:slide-in-blurred-top 1.4s;animation:slide-in-blurred-top 1.4s;
+                        }
+                        .info {
+                                text-align: right;
+                                margin-top: 1.5%;
+                                margin-left: 1.5%;
+                                display: inline-block;
+                                -webkit-animation:slide-in-blurred-top 1s;animation:slide-in-blurred-top 1s;
+                        }
+                        .mail {
+                                text-align: left;
+                                margin-top: 1.5%;
+                                margin-left: 1.5%;
+                                display: inline-block;
+                                -webkit-animation:slide-in-blurred-top .6s;animation:slide-in-blurred-top .6s;
+                        }
+                        /* POPUP */
+                        .tu-popup {
+                                position: relative;
+                                display: inline-block;
+                                cursor: pointer;
+                        }
+                        .tu-popup .tu-popuptext{
+                                visibility: hidden;
+                                width: 160px;
+                                background-color: #434141;
+                                color: #fff;
+                                text-align: center;
+                                border-radius: 6px;
+                                padding: 8px 0;
+                                position: absolute;
+                                z-index: 1;
+                                top: 120%;
+                                left: 60%;
+                                margin-left: -80px;
+                        }
+                        .tu-popup .show {
+                                visibility: visible;
+                                -webkit-animation: fadeIn 1s;
+                                animation: fadeIn 1s
+                        }
+                        .git {
+                                margin-top: 10px;
+                        }
+                </style>
+                <script>
+                        function showTuPopup() {
+                                var popup = document.getElementById("tu-myPopup");
+                                popup.classList.toggle("show");
+                        }
+                </script>
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3596232240715797"
+                crossorigin="anonymous"></script>
+        </head>
+        <body>
+                <section class="toolbar" id="toolbar">
+                        <div class="menu" id="menu">
+                                <div class="home" id="home">
+                                        <a href="index.html" title="Homepage"><img src="data/assets/img/home.png" width="35px" height="35px"></a>
+                                </div>
+                                <div class="tutorial" id="tutorial">
+                                        <div class="tu-popup" onclick="showTuPopup()" title="Quick Tutorial">
+                                                <img src="data/assets/img/webinar.png" width="35px" height="35px">
+                                                <span class="tu-popuptext" id="tu-myPopup">
+                                                <img src="data/assets/img/tutorial.gif" height="150px" widht="150px">
+                                                </span>
+                                        </div>
+                                </div>
+                                <div class="info" id="info" title="Game Info">
+                                        <a href="info.html"><img src="data/assets/img/info.png" class="infoicon" id="infoicon" width="35px" height="35px"></a>
+                                </div>
+                                <div class="mail" id="mail" title="Contact Us">
+                                        <a href="mailto:info.pentagogame@gmail.com?subject=Pentago%20contact%20and%20support"><img src="data/assets/img/mail.png" class="mail" id="mail" width="35px" height="35px"></a>
+                                </div>
+                        </div>
+                </section>
+                <img class="title" id="title" src="data/assets/img/title.PNG">
+                <br>
+                <p style="font-weight: bold;">Current game version</p>
+                <p>0.9 (Closed Beta)</p>
+                <br>
+                <p style="font-weight: bold;">How to play</p>
+                <p>Players alternate in turns, and in each turn a marble is placed and a quadrant is rotated. The first player to place 5 marbles of his own in a row (horizontally, vertically, diagonally) wins</p>
+                <br>
+                <p style="font-weight: bold;">Useful links</p>
+                Click on the link below for more infos regarding the project itself
+                <center><a href="https://github.com/basedryo/pentago.net" target="_blank"><img src="data/assets/img/git.png" style="width: 35px; height:auto" title="GitHub" class="git" id="git"></a></center>
+                <br>
+                <p style="font-weight: bold;">Credits</p>
+                <p>Full credits to Mindtwister, the company responsible for the publishment of the board-game, and the invention of itself</p>
+                <p>Project manager and developer: Alessandro Barro, Mathematical Engineering student at Politecnico di Milano
+                (contacts: barroalessandro2003@gmail.com)</p>
+                <p>Special thanks to Matteo Colussi, Aerospace Engineering student at Politecnico di Milano (and a dear friend), for making game-arts and design
+                (contacts: matteo.colussi03@gmail.com)</p>
+                </p>
+                <br>
+        </body>
+</html>
